@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Global IT Evolutions - Преміум IT-Рішення</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    /* VARIABLES */
+    :root {
+      --bg-dark: #0A0D18;
+      --bg-section: #12162B;
+      --text-main: #E0E7FF;
+      --text-muted: #A0B0D0;
+      --accent-primary: #8A4FF3; /* Brighter purple */
+      --accent-secondary: #00C8FF; /* Cyan/blue for contrast */
+      --gradient-main: linear-gradient(90deg, #8A4FF3 0%, #00C8FF 100%);
+      --gradient-hover: linear-gradient(90deg, #00C8FF 0%, #8A4FF3 100%);
+      --neon-glow-primary: 0 0 15px rgba(138, 79, 243, 0.7), 0 0 30px rgba(138, 79, 243, 0.5), 0 0 45px rgba(138, 79, 243, 0.3);
+      --neon-glow-secondary: 0 0 15px rgba(0, 200, 255, 0.7), 0 0 30px rgba(0, 200, 255, 0.5);
+      --card-bg: #1A1F36;
+      --card-border: 1px solid rgba(138, 79, 243, 0.3);
+      --border-light: rgba(255, 255, 255, 0.08);
+    }
+
+    /* BASE STYLES */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.7;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 25px;
+    }
+
+    section { padding: 120px 0; position: relative; }
+    section.dark { background: var(--bg-section); }
+
+    h1, h2, h3, h4 {
+      font-family: 'Montserrat', sans-serif;
+      color: var(--text-main);
+      font-weight: 700;
+      margin-bottom: 25px;
+    }
+
+    h1 {
+      font-size: clamp(2.5rem, 7vw, 4.5rem);
+      text-align: center;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--neon-glow-primary);
+      line-height: 1.1;
+      margin-bottom: 30px;
+    }
+
+    h2 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      text-align: center;
+      margin-bottom: 70px;
+      position: relative;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--neon-glow-primary);
+    }
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: var(--accent-primary);
+      border-radius: 2px;
+      box-shadow: var(--neon-glow-primary);
+    }
+
+    p { margin-bottom: 20px; color: var(--text-muted); }
+    strong { color: var(--text-main); }
+
+    /* UTILITIES */
+    .text-center { text-align: center; }
+    .mb-60 { margin-bottom: 60px; }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px 40px;
+      border-radius: 50px;
+      background: var(--gradient-main);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      transition: all 0.4s ease-in-out;
+      border: none;
+      box-shadow: var(--neon-glow-primary);
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      cursor: pointer;
+    }
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--gradient-hover);
+      z-index: -1;
+      transition: transform 0.4s ease-in-out;
+      transform: translateX(-100%);
+    }
+    .btn:hover::before {
+      transform: translateX(0);
+    }
+    .btn:hover {
+      box-shadow: var(--neon-glow-secondary);
+      transform: translateY(-3px);
+    }
+    .btn i { margin-left: 10px; font-size: 1.2em; }
+
+    /* HEADER / NAVBAR */
+    .navbar {
+      background: rgba(10, 13, 24, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 20px 0;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(138, 79, 243, 0.2);
+    }
+    .navbar .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .navbar .logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent-primary);
+      text-decoration: none;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--neon-glow-primary);
+    }
+    .navbar .nav-links {
+      display: flex;
+      list-style: none;
+    }
+    .navbar .nav-links li { margin-left: 30px; }
+    .navbar .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 1.05rem;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+      position: relative;
+      padding: 5px 0;
+    }
+    .navbar .nav-links a::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gradient-main);
+      transition: width 0.3s ease;
+      box-shadow: var(--neon-glow-primary);
+    }
+    .navbar .nav-links a:hover,
+    .navbar .nav-links a.active {
+      color: var(--accent-primary);
+      text-shadow: 0 0 10px rgba(138, 79, 243, 0.7);
+    }
+    .navbar .nav-links a:hover::after,
+    .navbar .nav-links a.active::after {
+      width: 100%;
+    }
+
+    /* HERO SECTION */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 50%, #1b1e33 0%, #0A0D18 80%);
+      padding-top: 120px; /* Adjust for fixed navbar */
+    }
+    .hero-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('https://source.unsplash.com/1600x900/?tech,network,abstract') no-repeat center center/cover; /* Dynamic background */
+      filter: brightness(0.3) blur(2px);
+      transform: scale(1.05);
+      animation: zoomFade 60s infinite alternate linear;
+      z-index: 0;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(138,79,243,0.3), transparent 70%);
+      animation: pulse 8s infinite alternate ease-in-out;
+      z-index: 1;
+    }
+    @keyframes zoomFade {
+      0% { transform: scale(1.05); opacity: 0.8; }
+      100% { transform: scale(1.15); opacity: 1; }
+    }
+    @keyframes pulse {
+      0% { opacity: 0.2; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(1.1); }
+      100% { opacity: 0.2; transform: scale(1); }
+    }
+    .hero .container {
+      position: relative;
+      z-index: 2;
+    }
+    .hero h1 { margin-bottom: 25px; }
+    .hero .tagline {
+      font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+      color: var(--text-muted);
+      margin-bottom: 50px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    /* ABOUT SECTION */
+    .about-content {
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+    .about-text p { font-size: 1.05rem; }
+
+    .mission {
+      background: var(--card-bg);
+      text-align: center;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: var(--neon-glow-primary);
+      border: var(--card-border);
+    }
+    .mission h3 {
+      font-size: 1.8rem;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--neon-glow-primary);
+      margin-bottom: 20px;
+    }
+    .mission p {
+      color: var(--text-main);
+      font-size: 1.1rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin-top: 60px;
+    }
+    .value-item {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      border: var(--border-light);
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .value-item::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at center, rgba(138,79,243,0.1), transparent 70%);
+      transition: transform 0.5s ease-out;
+      transform: scale(0);
+      opacity: 0;
+    }
+    .value-item:hover::before {
+      transform: scale(1);
+      opacity: 1;
+    }
+    .value-item:hover {
+      transform: translateY(-8px) scale(1.02);
+      box-shadow: var(--neon-glow-primary);
+      border-color: var(--accent-primary);
+    }
+    .value-item i {
+      font-size: 3rem;
+      margin-bottom: 20px;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--neon-glow-primary);
+    }
+    .value-item h3 {
+      font-size: 1.4rem;
+      margin-bottom: 10px;
+      color: var(--text-main);
+    }
+    .value-item p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+    }
+
+
+    /* MOTTO SECTION */
+    .motto {
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      color: var(--accent-primary);
+      text-align: center;
+      margin: 80px auto;
+      max-width: 900px;
+      font-weight: 800;
+      text-shadow: var(--neon-glow-primary);
+      line-height: 1.3;
+      padding: 0 20px;
+    }
+
+    /* SERVICES SECTION */
+    .services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    .service-card {
+      background: var(--card-bg);
+      padding: 35px;
+      border-radius: 20px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.4);
+      border: var(--card-border);
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: radial-gradient(circle at center, rgba(138,79,243,0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      pointer-events: none;
+    }
+    .service-card:hover::before {
+      opacity: 1;
+    }
+    .service-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: var(--neon-glow-primary);
+      border-color: var(--accent-secondary);
+    }
+    .service-card i {
+      font-size: 3.5rem;
+      margin-bottom: 20px;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--neon-glow-primary);
+      display: block; /* Ensures glow applies correctly */
+    }
+    .service-card h3 {
+      font-size: 1.6rem;
+      color: var(--text-main);
+      margin-bottom: 15px;
+    }
+    .service-card p { font-size: 1.05rem; }
+
+    /* HOW WE WORK / STEPS SECTION */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    .step-item {
+      background: var(--card-bg);
+      padding: 35px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      border: var(--border-light);
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .step-item:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--neon-glow-secondary);
+      border-color: var(--accent-secondary);
+    }
+    .step-item .step-number {
+      font-size: 3rem;
+      font-weight: 800;
+      color: var(--accent-secondary);
+      background: var(--gradient-hover);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--neon-glow-secondary);
+      margin-bottom: 20px;
+      line-height: 1;
+    }
+    .step-item h3 {
+      font-size: 1.6rem;
+      color: var(--text-main);
+      margin-bottom: 15px;
+    }
+    .step-item p { font-size: 1.05rem; }
+
+    /* WHY US / REASONS SECTION */
+    .reasons-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+    .reason-card {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      border: var(--border-light);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .reason-card:hover {
+      transform: translateY(-8px);
+      box-shadow: var(--neon-glow-primary);
+      border-color: var(--accent-primary);
+    }
+    .reason-card i {
+      font-size: 2.8rem;
+      margin-bottom: 15px;
+      background: var(--gradient-main);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--neon-glow-primary);
+    }
+    .reason-card h3 {
+      font-size: 1.4rem;
+      color: var(--text-main);
+      margin-bottom: 10px;
+    }
+    .reason-card p { font-size: 0.95rem; }
+
+
+    /* FAQ SECTION */
+    .faq-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+    }
+    .faq-item {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      border: var(--border-light);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .faq-item:hover {
+      box-shadow: var(--neon-glow-secondary);
+      border-color: var(--accent-secondary);
+    }
+    .faq-item h4 {
+      font-size: 1.25rem;
+      color: var(--text-main);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0;
+    }
+    .faq-item h4 i {
+      font-size: 1rem;
+      transition: transform 0.3s ease;
+      color: var(--accent-secondary);
+    }
+    .faq-item.active h4 i {
+      transform: rotate(180deg);
+    }
+    .faq-item p {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease-out, opacity 0.4s ease-out;
+      opacity: 0;
+      margin-top: 15px;
+      color: var(--text-muted);
+    }
+    .faq-item.active p {
+      max-height: 200px; /* Adjust as needed */
+      opacity: 1;
+    }
+
+    /* CONTACT SECTION */
+    .contact-info {
+      list-style: none;
+      padding: 0;
+      margin-top: 40px;
+      font-size: 1.15rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+    .contact-info li {
+      margin-bottom: 15px;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    .contact-info li i {
+      color: var(--accent-primary);
+      font-size: 1.5rem;
+      text-shadow: var(--neon-glow-primary);
+    }
+    .contact-info a {
+      color: var(--accent-secondary);
+      text-decoration: none;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+    .contact-info a:hover {
+      color: var(--text-main);
+      text-shadow: var(--neon-glow-secondary);
+    }
+
+    /* TELEGRAM BUTTON */
+    .telegram-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: var(--gradient-main);
+      color: white;
+      font-size: 1.8rem;
+      border-radius: 50%;
+      width: 65px;
+      height: 65px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-decoration: none;
+      box-shadow: var(--neon-glow-primary);
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+    .telegram-btn:hover {
+      background: var(--gradient-hover);
+      transform: scale(1.1);
+      box-shadow: var(--neon-glow-secondary);
+    }
+
+    /* FOOTER */
+    footer {
+      background: #0D101A;
+      color: var(--text-muted);
+      text-align: center;
+      padding: 60px 20px;
+      border-top: 1px solid var(--border-light);
+    }
+    footer .footer-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+    footer .footer-nav {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px 30px;
+      list-style: none;
+      margin-bottom: 20px;
+    }
+    footer .footer-nav a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+    footer .footer-nav a:hover {
+      color: var(--accent-primary);
+      text-shadow: 0 0 8px rgba(138, 79, 243, 0.5);
+    }
+    footer p { margin-bottom: 0; font-size: 0.9rem; }
+
+    /* MOBILE MENU */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      z-index: 1001;
+    }
+    .hamburger span {
+      height: 3px;
+      width: 28px;
+      background: var(--accent-primary);
+      margin-bottom: 5px;
+      border-radius: 5px;
+      transition: all 0.3s ease;
+    }
+    .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    /* MEDIA QUERIES */
+    @media (max-width: 992px) {
+      .navbar .nav-links { display: none; flex-direction: column; position: absolute; top: 80px; left: 0; width: 100%; background: rgba(10, 13, 24, 0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--border-light); padding: 20px 0; }
+      .navbar .nav-links.active { display: flex; }
+      .navbar .nav-links li { margin: 15px 0; text-align: center; }
+      .hamburger { display: flex; }
+      .hero { padding-top: 100px; }
+      h1 { font-size: clamp(2rem, 8vw, 3.5rem); }
+      h2 { font-size: clamp(1.8rem, 6vw, 2.8rem); }
+      .container { padding: 0 15px; }
+      section { padding: 80px 0; }
+      .telegram-btn { width: 55px; height: 55px; font-size: 1.5rem; bottom: 20px; right: 20px; }
+      .contact-info li { flex-direction: column; gap: 5px; margin-bottom: 20px; text-align: center; }
+    }
+    @media (max-width: 600px) {
+      .footer-nav { flex-direction: column; gap: 15px; }
+    }
+
+    /* SCROLL INDICATOR (New Feature) */
+    #scroll-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 4px;
+      width: 0%;
+      background: var(--gradient-main);
+      box-shadow: var(--neon-glow-primary);
+      z-index: 10000;
+    }
+  </style>
+</head>
+<body>
+  <div id="scroll-indicator"></div>
+
+  <nav class="navbar">
+    <div class="container">
+      <a href="#" class="logo">Global IT Evolutions</a>
+      <ul class="nav-links">
+        <li><a href="#about" class="nav-link">Про нас</a></li>
+        <li><a href="#services" class="nav-link">Послуги</a></li>
+        <li><a href="#how" class="nav-link">Як ми працюємо</a></li>
+        <li><a href="#why" class="nav-link">Чому ми</a></li>
+        <li><a href="#faq" class="nav-link">FAQ</a></li>
+        <li><a href="#contact" class="nav-link">Контакти</a></li>
+      </ul>
+      <div class="hamburger">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <h1>Global IT Evolutions</h1>
+      <p class="tagline">Створюємо інноваційні веб-рішення, Telegram-боти та автоматизації, що трансформують ваш бізнес.</p>
+      <a href="#services" class="btn">Наші послуги <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </header>
+
+  <section id="about" class="section">
+    <div class="container">
+      <h2>Хто ми</h2>
+      <div class="about-content">
+        <div class="about-text">
+          <p>Global IT Evolutions — це не просто IT-компанія. Ми ваш стратегічний партнер у світі цифрових інновацій. Зосереджені на створенні високопродуктивних веб-сайтів, інтелектуальних Telegram-ботів та системних автоматизацій, ми гарантуємо, що кожне рішення є не лише функціональним, а й економічно вигідним та масштабованим для майбутнього.</p>
+          <p>Наша місія — <strong>демократизувати складні технології</strong>, перетворюючи їх на зрозумілі, доступні та надзвичайно корисні інструменти для розвитку вашого бізнесу. Ми віримо, що успіх у цифрову епоху залежить від ефективності та простоти.</p>
+        </div>
+        <div class="mission">
+          <h3>Місія компанії</h3>
+          <p>Перетворювати складні бізнес-виклики на елегантні цифрові рішення, роблячи інновації доступними для кожного підприємства. Ми не просто пишемо код — ми створюємо можливості.</p>
+        </div>
+        <div class="values-grid">
+          <div class="value-item">
+            <i class="fas fa-user-tie"></i>
+            <h3>Індивідуальний підхід</h3>
+            <p>Глибоке занурення в унікальні потреби вашого бізнесу для розробки персоналізованих рішень.</p>
+          </div>
+          <div class="value-item">
+            <i class="fas fa-rocket"></i>
+            <h3>Сучасні технології</h3>
+            <p>Використовуємо передові стеки та методології для створення найефективніших продуктів.</p>
+          </div>
+          <div class="value-item">
+            <i class="fas fa-shield-alt"></i>
+            <h3>Надійність і підтримка</h3>
+            <p>Від бездоганного запуску до цілодобової підтримки — ми з вами на кожному кроці.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="motto">
+    "Ми трансформуємо складне у геніально просте, щоб ваш бізнес не просто рухався вперед, а літав."
+  </section>
+
+  <section id="services" class="section dark">
+    <div class="container">
+      <h2>Наші преміум-послуги</h2>
+      <div class="services-grid">
+        <div class="service-card">
+          <i class="fas fa-globe"></i>
+          <h3>Веб-сайти нового покоління</h3>
+          <p>Від вражаючих лендінгів до складних корпоративних порталів та E-commerce рішень — створюємо швидкі, адаптивні та безпечні веб-платформи, що конвертують.</p>
+        </div>
+        <div class="service-card">
+          <i class="fab fa-telegram-plane"></i>
+          <h3>Інтелектуальні Telegram-боти</h3>
+          <p>Автоматизуйте продажі, підтримку клієнтів, бронювання та інші процеси за допомогою наших кастомних, інтуїтивно зрозумілих Telegram-ботів. Ваш бізнес працює 24/7.</p>
+        </div>
+        <div class="service-card">
+          <i class="fas fa-cogs"></i>
+          <h3>Розширені автоматизації та скрипти</h3>
+          <p>Оптимізуйте операційні витрати та підвищуйте ефективність з індивідуальними скриптами та інтеграціями, що синхронізують ваші сервіси та автоматизують рутинні завдання.</p>
+        </div>
+        <div class="service-card">
+          <i class="fas fa-headset"></i>
+          <h3>Проактивний супровід та підтримка</h3>
+          <p>Гарантуємо стабільність та безперебійну роботу ваших цифрових активів. Моніторинг, оновлення безпеки, оптимізація продуктивності та швидка технічна підтримка.</p>
+        </div>
+        <div class="service-card">
+          <i class="fas fa-lightbulb"></i>
+          <h3>Стратегічний IT-консалтинг</h3>
+          <p>Отримайте експертну оцінку та стратегічні рекомендації щодо цифровізації. Ми допоможемо вам обрати найкращі технологічні рішення та уникнути зайвих витрат.</p>
+        </div>
+        <div class="service-card">
+          <i class="fas fa-chart-line"></i>
+          <h3>Аналітика та оптимізація</h3>
+          <p>Впроваджуємо системи збору даних, налаштовуємо аналітику та проводимо A/B тестування для постійного вдосконалення та зростання вашого бізнесу в онлайні.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" class="section">
+    <div class="container">
+      <h2>Наш бездоганний процес</h2>
+      <div class="steps-grid">
+        <div class="step-item">
+          <div class="step-number">01</div>
+          <h3>Аналіз та стратегія</h3>
+          <p>Глибоко занурюємося у вашу бізнес-модель, проводимо аудит поточних потреб та розробляємо оптимальну стратегію цифрової трансформації.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-number">02</div>
+          <h3>Проектування та розробка</h3>
+          <p>Від ідеї до коду: створюємо сучасний UX/UI дизайн, пишемо чистий, масштабований код та проводимо ретельне тестування на кожному етапі.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-number">03</div>
+          <h3>Запуск та оптимізація</h3>
+          <p>Забезпечуємо бездоганний запуск проекту, надаємо повну підтримку та постійно оптимізуємо рішення для максимальної продуктивності та ефективності.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="why" class="section dark">
+    <div class="container">
+      <h2>Чому клієнти обирають Global IT Evolutions</h2>
+      <div class="reasons-grid">
+        <div class="reason-card">
+          <i class="fas fa-brain"></i>
+          <h3>Неперевершена експертиза</h3>
+          <p>Команда досвідчених розробників та аналітиків, які володіють найновішими технологіями та глибоким розумінням бізнес-процесів.</p>
+        </div>
+        <div class="reason-card">
+          <i class="fas fa-bolt"></i>
+          <h3>Виняткова швидкість</h3>
+          <p>Ми цінуємо ваш час. Більшість проектів запускаються у рекордно короткі терміни без компромісів щодо якості.</p>
+        </div>
+        <div class="reason-card">
+          <i class="fas fa-handshake"></i>
+          <h3>Повна надійність</h3>
+          <p>Ваш успіх — наш пріоритет. Гарантуємо стабільність, безпеку та постійну доступність для підтримки та консультацій.</p>
+         fungicide class
+          <p>Ми пояснюємо складне простою мовою, забезпечуючи максимальний комфорт та прозорість співпраці на всіх етапах.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq" class="section">
+    <div class="container">
+      <h2>Часті запитання</h2>
+      <div class="faq-grid">
+        <div class="faq-item">
+          <h4>Скільки часу займає створення веб-сайту? <i class="fas fa-chevron-down"></i></h4>
+          <p>Терміни сильно залежать від складності проекту. Простий лендінг може бути готовий за 3-5 робочих днів, тоді як масштабний корпоративний портал або e-commerce рішення потребуватимуть 4-8 тижнів.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Яка орієнтовна вартість розробки Telegram-бота? <i class="fas fa-chevron-down"></i></h4>
+          <p>Базова версія бота з мінімальним функціоналом стартує від 10000 гривень. Ціна зростає залежно від складності логіки, інтеграцій зі сторонніми сервісами, обсягу даних та UI/UX дизайну.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Чи працюєте ви з іноземними клієнтами? <i class="fas fa-chevron-down"></i></h4>
+          <p>Безумовно! Ми успішно співпрацюємо з компаніями та стартапами з країн ЄС, США, Канади та Близького Сходу. Оплата можлива у зручній для вас валюті через міжнародні платіжні системи.</p>
+        </div>
+        <div class="faq-item">
+          <h4>Чи надаєте ви підтримку після запуску проекту? <i class="fas fa-chevron-down"></i></h4>
+          <p>Так, ми пропонуємо повний пакет послуг супроводу та технічної підтримки. Це включає моніторинг, оновлення, резервне копіювання, усунення несправностей та подальше вдосконалення продукту.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="section dark">
+    <div class="container text-center">
+      <h2>Зв’яжіться з нами</h2>
+      <p class="tagline">Ваша ідея заслуговує на найкраще втілення. Напишіть нам — ми відповімо протягом 24 годин.</p>
+      <ul class="contact-info">
+        <li><i class="fas fa-map-marker-alt"></i> 01024, м. Київ, вул. Антоновича, 26, офіс 17</li>
+        <li><i class="fas fa-phone"></i> <a href="tel:+380954971877">+38 (095) 497 18 77</a></li>
+        <li><i class="fas fa-envelope"></i> <a href="mailto:globalitevolutions@icloud.com">globalitevolutions@icloud.com</a></li>
+      </ul>
+      <a href="https://t.me/moon12121232" target="_blank" class="btn mt-60">
+        Написати в Telegram <i class="fab fa-telegram-plane"></i>
+      </a>
+    </div>
+  </section>
+
+  <a href="https://t.me/moon12121232" target="_blank" class="telegram-btn" aria-label="Зв'язатись у Telegram">
+    <i class="fab fa-telegram-plane"></i>
+  </a>
+
+  <footer>
+    <div class="container footer-content">
+      <ul class="footer-nav">
+        <li><a href="#about">Про нас</a></li>
+        <li><a href="#services">Послуги</a></li>
+        <li><a href="#how">Як ми працюємо</a></li>
+        <li><a href="#why">Чому ми</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#contact">Контакти</a></li>
+      </ul>
+      <p>&copy; 2025 Global IT Evolutions • ТОВ «Глобал АйТі Еволюшнс»</p>
+    </div>
+  </footer>
+
+  <script>
+    // Navbar active link on scroll
+    const sections = document.querySelectorAll('section');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 120; // Adjust for fixed navbar height
+        const sectionHeight = section.clientHeight;
+        if (pageYOffset >= sectionTop && pageYOffset < sectionTop + sectionHeight) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navLinks.forEach(link => {
+        link.classList.remove('active');
+        if (link.getAttribute('href').includes(current)) {
+          link.classList.add('active');
+        }
+      });
+
+      // Scroll Indicator
+      const scrollIndicator = document.getElementById('scroll-indicator');
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      scrollIndicator.style.width = scrolled + "%";
+    });
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        document.querySelector(this.getAttribute('href')).scrollIntoView({
+          behavior: 'smooth'
+        });
+      });
+    });
+
+    // FAQ Accordion
+    document.querySelectorAll('.faq-item').forEach(item => {
+      item.addEventListener('click', () => {
+        item.classList.toggle('active');
+      });
+    });
+
+    // Hamburger menu for mobile
+    const hamburger = document.querySelector('.hamburger');
+    const navMenu = document.querySelector('.nav-links');
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('active');
+      navMenu.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-links a').forEach(link => {
+      link.addEventListener('click', () => {
+        if (navMenu.classList.contains('active')) {
+          hamburger.classList.remove('active');
+          navMenu.classList.remove('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
