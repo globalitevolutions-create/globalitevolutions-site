@@ -1,0 +1,6 @@
+# Дозволити всім пошуковим роботам індексувати сайт
+User-agent: *
+Allow: /
+
+# Вказати шлях до карти сайту
+Sitemap: https://globalitevolutions.com.ua/sitemap.xml

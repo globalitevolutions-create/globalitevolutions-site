@@ -3,7 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Global IT Evolutions - Преміум IT-Рішення</title>
+  
+  <!-- Оновлений Title для SEO -->
+  <title>Global IT Evolutions — Цифрові рішення для бізнесу</title>
+
+  <!-- Іконка сайту (Favicon) - я додав базову як приклад -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+
+  <!-- SEO Meta Теги (Додано за вашим запитом) -->
+  <link rel="canonical" href="https://globalitevolutions.com.ua/" />
+  <meta name="robots" content="index, follow" />
+  <meta name="description" content="Глобал АйТі Еволюшнс — українська IT-компанія, що створює сайти, Telegram-боти та цифрові рішення для бізнесу." />
+  <meta property="og:title" content="Global IT Evolutions — Цифрові рішення для бізнесу" />
+  <meta property="og:description" content="Розробка сайтів, Telegram-ботів, скриптів та автоматизацій під ваш бізнес. Просте. Надійне. Ефективне." />
+  <meta property="og:url" content="https://globalitevolutions.com.ua/" />
+  <meta property="og:type" content="website" />
+  <!-- Кінець SEO Meta Тегів -->
+
+  <!-- Посилання на Sitemap -->
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+  <!-- Шрифти та стилі -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
@@ -622,6 +642,8 @@
       text-shadow: 0 0 8px rgba(138, 79, 243, 0.5);
     }
     footer p { margin-bottom: 0; font-size: 0.9rem; }
+    /* Я додав тег small для семантичної коректності копірайту */
+    footer small { font-size: 0.9rem; }
 
     /* MOBILE MENU */
     .hamburger {
@@ -678,7 +700,8 @@
 
   <nav class="navbar">
     <div class="container">
-      <a href="#" class="logo">Global IT Evolutions</a>
+      <!-- Оновлено посилання на логотипі -->
+      <a href="https://globalitevolutions.com.ua/" class="logo">Global IT Evolutions</a>
       <ul class="nav-links">
         <li><a href="#about" class="nav-link">Про нас</a></li>
         <li><a href="#services" class="nav-link">Послуги</a></li>
@@ -695,7 +718,7 @@
     </div>
   </nav>
 
-  <header class="hero">
+  <header class="hero" id="home"> <!-- Додав id="home" про всяк випадок -->
     <div class="hero-bg"></div>
     <div class="container">
       <h1>Global IT Evolutions</h1>
@@ -820,7 +843,11 @@
           <i class="fas fa-handshake"></i>
           <h3>Повна надійність</h3>
           <p>Ваш успіх — наш пріоритет. Гарантуємо стабільність, безпеку та постійну доступність для підтримки та консультацій.</p>
-         fungicide class
+        </div>
+        <!-- Я видалив помилковий текст "fungicide class", що був тут -->
+        <div class="reason-card">
+          <i class="fas fa-comments"></i>
+          <h3>Прозорість комунікації</h3>
           <p>Ми пояснюємо складне простою мовою, забезпечуючи максимальний комфорт та прозорість співпраці на всіх етапах.</p>
         </div>
       </div>
@@ -857,8 +884,8 @@
       <p class="tagline">Ваша ідея заслуговує на найкраще втілення. Напишіть нам — ми відповімо протягом 24 годин.</p>
       <ul class="contact-info">
         <li><i class="fas fa-map-marker-alt"></i> 01024, м. Київ, вул. Антоновича, 26, офіс 17</li>
-        <li><i class="fas fa-phone"></i> <a href="tel:+380954971877">+38 (095) 497 18 77</a></li>
-        <li><i class="fas fa-envelope"></i> <a href="mailto:globalitevolutions@icloud.com">globalitevolutions@icloud.com</a></li>
+        <li><i class="fas fa-phone"></i> <a href="tel:+380954971877" aria-label="Подзвонити нам">+38 (095) 497 18 77</a></li>
+        <li><i class="fas fa-envelope"></i> <a href="mailto:globalitevolutions@icloud.com" aria-label="Написати нам листа">globalitevolutions@icloud.com</a></li>
       </ul>
       <a href="https://t.me/moon12121232" target="_blank" class="btn mt-60">
         Написати в Telegram <i class="fab fa-telegram-plane"></i>
@@ -880,7 +907,7 @@
         <li><a href="#faq">FAQ</a></li>
         <li><a href="#contact">Контакти</a></li>
       </ul>
-      <p>&copy; 2025 Global IT Evolutions • ТОВ «Глобал АйТі Еволюшнс»</p>
+      <small>&copy; 2025 Global IT Evolutions • ТОВ «Глобал АйТі Еволюшнс»</small>
     </div>
   </footer>
 
@@ -890,7 +917,7 @@
     const navLinks = document.querySelectorAll('.nav-link');
 
     window.addEventListener('scroll', () => {
-      let current = '';
+      let current = 'home'; // Default to home
       sections.forEach(section => {
         const sectionTop = section.offsetTop - 120; // Adjust for fixed navbar height
         const sectionHeight = section.clientHeight;
