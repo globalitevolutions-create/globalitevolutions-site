@@ -8,244 +8,425 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
     .hidden { display: none !important; }
     .custom-scroll::-webkit-scrollbar { height: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-    @keyframes slideIn { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    @keyframes slideIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .notification { animation: slideIn 0.3s ease-out; }
+    /* Table styles */
+    .glass-row { transition: all 0.2s ease; }
+    .glass-row:hover { background-color: #f1f5f9; transform: scale(1.002); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); z-index: 10; position: relative; }
   </style>
 </head>
-<body class="text-slate-800">
+<body class="text-slate-800 antialiased">
 
   <!-- TOP BAR -->
-  <div class="bg-slate-800 text-white sticky top-0 z-40 shadow-md">
+  <div class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
-      <div class="flex items-center gap-2 font-bold text-xl">
-        <i class="fas fa-shield-alt text-blue-400"></i> InvestPro
+      <div class="flex items-center gap-2 font-bold text-xl text-slate-800">
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+            <i class="fas fa-chart-pie"></i>
+        </div>
+        <span>Invest<span class="text-blue-600">Pro</span></span>
       </div>
 
-      <div class="flex gap-3 items-center">
-        <div id="user-area" class="hidden items-center gap-3">
-          <span id="user-email" class="text-sm hidden sm:inline"></span>
-          <button id="btn-logout" class="bg-white text-slate-800 px-3 py-2 rounded-lg text-sm hover:bg-slate-100">Вихід</button>
+      <div class="flex gap-2 items-center">
+        <div id="user-area" class="hidden items-center gap-3 mr-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+          <div class="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center text-xs text-white overflow-hidden">
+             <i class="fas fa-user"></i>
+          </div>
+          <span id="user-email" class="text-xs font-medium text-slate-600 hidden sm:inline"></span>
+          <button id="btn-logout" class="text-slate-400 hover:text-red-500 transition ml-1"><i class="fas fa-sign-out-alt"></i></button>
         </div>
 
-        <button id="btn-login" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+        <button id="btn-login" class="bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-slate-200">
           <i class="fab fa-google"></i> <span class="hidden sm:inline">Увійти</span>
         </button>
 
         <input type="file" id="file-input" class="hidden" accept=".json">
         
-        <button id="btn-import" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-600" title="Імпорт з файлу">
-          <i class="fas fa-file-import text-yellow-400"></i>
-        </button>
-
-        <button id="btn-export" class="bg-blue-600 hover:bg-blue-500 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-blue-900/50" title="Експорт у файл">
-          <i class="fas fa-save"></i>
-        </button>
+        <div class="flex gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
+            <button id="btn-import" class="text-slate-600 hover:bg-white hover:text-blue-600 hover:shadow-sm px-3 py-1.5 rounded-md text-sm transition" title="Імпорт з файлу">
+            <i class="fas fa-file-import"></i>
+            </button>
+            <button id="btn-export" class="text-slate-600 hover:bg-white hover:text-blue-600 hover:shadow-sm px-3 py-1.5 rounded-md text-sm transition" title="Експорт у файл">
+            <i class="fas fa-save"></i>
+            </button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- MAIN -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32">
     
     <!-- Login Prompt -->
-    <div id="login-prompt" class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-8 rounded-r-lg">
-      <div class="flex">
-        <div class="flex-shrink-0">
-          <i class="fas fa-info-circle text-blue-500"></i>
-        </div>
-        <div class="ml-3">
-          <p class="text-sm text-blue-700">
-            Будь ласка, <b>увійдіть через Google</b>, щоб побачити свої записи. Дані зберігаються в хмарі.
-          </p>
-        </div>
+    <div id="login-prompt" class="bg-blue-50 border border-blue-100 p-4 mb-8 rounded-xl flex items-center gap-4 shadow-sm">
+      <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+        <i class="fas fa-cloud"></i>
+      </div>
+      <div>
+        <h4 class="font-bold text-blue-900 text-sm">Хмарне збереження</h4>
+        <p class="text-xs text-blue-700">Увійдіть через Google, щоб ваші дані синхронізувалися між пристроями.</p>
       </div>
     </div>
 
     <!-- Stats area -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-1 h-full bg-green-500"></div>
-        <div class="flex justify-between items-start">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+      <!-- Assets -->
+      <div class="bg-white p-6 rounded-2xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-100 relative group overflow-hidden">
+        <div class="flex justify-between items-start z-10 relative">
           <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Активи</p>
-            <h2 class="text-3xl font-bold text-slate-800 mt-2" id="stat-assets">0 ₴</h2>
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Активи</p>
+            <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight" id="stat-assets">0 ₴</h2>
           </div>
-          <div class="p-2 bg-green-50 rounded-lg text-green-600"><i class="fas fa-coins"></i></div>
+          <div class="w-10 h-10 bg-green-50 text-green-600 rounded-xl flex items-center justify-center text-lg shadow-sm">
+              <i class="fas fa-wallet"></i>
+          </div>
         </div>
-        <div class="mt-4 flex flex-wrap gap-2 text-xs" id="stat-brokers"></div>
+        <div class="mt-4 flex flex-wrap gap-1.5" id="stat-brokers"></div>
+        <!-- Decorative bg -->
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-green-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-1 h-full bg-red-500"></div>
-        <div class="flex justify-between items-start">
+      <!-- Debt -->
+      <div class="bg-white p-6 rounded-2xl shadow-[0_2px_10px_-3px_rgba(220,38,38,0.1)] border border-slate-100 relative group overflow-hidden">
+        <div class="flex justify-between items-start z-10 relative">
           <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Борги</p>
-            <h2 class="text-3xl font-bold text-red-600 mt-2" id="stat-debt">0 ₴</h2>
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Заборгованість за кредитним лімітом</p>
+            <h2 class="text-3xl font-extrabold text-slate-800 tracking-tight" id="stat-debt">0 ₴</h2>
           </div>
-          <div class="p-2 bg-red-50 rounded-lg text-red-600"><i class="fas fa-credit-card"></i></div>
+          <div class="w-10 h-10 bg-red-50 text-red-500 rounded-xl flex items-center justify-center text-lg shadow-sm">
+              <i class="fas fa-credit-card"></i>
+          </div>
         </div>
-        <div id="stat-debt-alert" class="mt-4 text-sm text-slate-500">Боргів немає</div>
+        <div id="stat-debt-alert" class="mt-4 text-xs font-medium text-slate-500">Боргів немає</div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-red-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
       </div>
 
-      <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-1 h-full bg-blue-500"></div>
-        <div class="flex justify-between items-start">
+      <!-- Profit -->
+      <div class="bg-white p-6 rounded-2xl shadow-[0_2px_10px_-3px_rgba(37,99,235,0.1)] border border-slate-100 relative group overflow-hidden">
+        <div class="flex justify-between items-start z-10 relative">
           <div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Прибуток</p>
-            <h2 class="text-3xl font-bold mt-2 text-blue-600" id="stat-profit">0 ₴</h2>
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">Прибуток</p>
+            <h2 class="text-3xl font-extrabold text-blue-600 tracking-tight" id="stat-profit">0 ₴</h2>
           </div>
-          <div class="p-2 bg-blue-50 rounded-lg text-blue-600"><i class="fas fa-chart-line"></i></div>
+          <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-lg shadow-sm">
+              <i class="fas fa-chart-line"></i>
+          </div>
         </div>
-        <p class="text-xs text-slate-400 mt-4">Чистий капітал: <span id="stat-networth" class="text-slate-800 font-bold">0 ₴</span></p>
+        <div class="mt-4 pt-4 border-t border-slate-50 flex justify-between items-center">
+            <span class="text-xs text-slate-400">Чистий капітал</span>
+            <span id="stat-networth" class="text-sm font-bold text-slate-700">0 ₴</span>
+        </div>
+        <div class="absolute -bottom-6 -right-6 w-24 h-24 bg-blue-50 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
       </div>
     </div>
 
-    <!-- Two columns: credits & bonds -->
+    <!-- Layout Grid -->
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
-      <!-- CREDITS -->
+      
+      <!-- CREDITS SECTION -->
       <div class="flex flex-col gap-4">
-        <div class="flex justify-between items-center">
-          <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fas fa-credit-card text-red-500"></i> Кредити</h3>
-          <button id="open-credit" class="text-xs bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium px-3 py-2 rounded-lg shadow-sm transition">+ Додати ліміт</button>
+        <div class="flex justify-between items-center px-1">
+          <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+            <span class="w-1 h-6 bg-red-500 rounded-full"></span>
+            Кредитні ліміти
+          </h3>
+          <button id="open-credit" class="text-xs bg-white hover:bg-red-50 text-slate-600 hover:text-red-600 border border-slate-200 hover:border-red-200 font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
+            <i class="fas fa-plus"></i> Додати
+          </button>
         </div>
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="overflow-x-auto custom-scroll">
-            <table class="w-full text-sm text-left">
-              <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-wider font-semibold border-b border-slate-100">
                 <tr>
-                  <th class="px-4 py-3 font-semibold">Банк</th>
-                  <th class="px-4 py-3 text-right font-semibold">Борг</th>
-                  <th class="px-4 py-3 text-center font-semibold">Дедлайн</th>
-                  <th class="px-4 py-3"></th>
+                  <th class="px-3 py-3">Банк</th>
+                  <th class="px-2 py-3 text-right">Сума заборгованості</th>
+                  <th class="px-2 py-3 text-center">Дедлайн</th>
+                  <th class="px-2 py-3 text-right w-20">Дії</th>
                 </tr>
               </thead>
-              <tbody id="credits-list" class="divide-y divide-slate-100"></tbody>
+              <tbody id="credits-list" class="divide-y divide-slate-50"></tbody>
             </table>
           </div>
-          <div id="credits-empty" class="p-8 text-center text-slate-400 text-sm hidden">Немає активних кредитів</div>
+          <div id="credits-empty" class="p-10 text-center text-slate-400 text-sm hidden flex flex-col items-center">
+            <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3 text-slate-300 text-xl"><i class="fas fa-check"></i></div>
+            Немає активних кредитів
+          </div>
         </div>
       </div>
 
-      <!-- BONDS -->
+      <!-- BONDS SECTION -->
       <div class="flex flex-col gap-4">
-        <div class="flex justify-between items-center">
-          <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2"><i class="fas fa-file-invoice-dollar text-green-500"></i> Облігації</h3>
-          <button id="open-bond" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-2 rounded-lg shadow-sm transition">+ Купити облігацію</button>
+        <div class="flex justify-between items-center px-1">
+          <h3 class="font-bold text-lg text-slate-800 flex items-center gap-2">
+            <span class="w-1 h-6 bg-blue-500 rounded-full"></span>
+            Портфель облігацій
+          </h3>
+          <button id="open-bond" class="text-xs bg-slate-800 hover:bg-black text-white font-semibold px-4 py-2 rounded-lg shadow-md transition flex items-center gap-2">
+            <i class="fas fa-plus"></i> Купити
+          </button>
         </div>
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
           <div class="overflow-x-auto custom-scroll">
-            <table class="w-full text-sm text-left">
-              <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-200">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-slate-50 text-slate-400 text-[10px] uppercase tracking-wider font-semibold border-b border-slate-100">
                 <tr>
-                  <th class="px-4 py-3 font-semibold">Назва / Брокер</th>
-                  <th class="px-4 py-3 text-center font-semibold">Шт</th>
-                  <th class="px-4 py-3 text-right font-semibold">Ціна (Пот)</th>
-                  <th class="px-4 py-3 text-right font-semibold">Прибуток</th>
-                  <th class="px-4 py-3"></th>
+                  <th class="px-3 py-3">Інструмент</th>
+                  <th class="px-2 py-3 text-center">К-сть</th>
+                  <th class="px-2 py-3 text-right">Ціна (Пот)</th>
+                  <th class="px-2 py-3 text-right">Прибуток</th>
+                  <th class="px-2 py-3 text-right w-28">Дії</th>
                 </tr>
               </thead>
-              <tbody id="bonds-list" class="divide-y divide-slate-100"></tbody>
+              <tbody id="bonds-list" class="divide-y divide-slate-50"></tbody>
             </table>
           </div>
-          <div id="bonds-empty" class="p-8 text-center text-slate-400 text-sm hidden">Портфель порожній</div>
+          <div id="bonds-empty" class="p-10 text-center text-slate-400 text-sm hidden flex flex-col items-center">
+            <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3 text-slate-300 text-xl"><i class="fas fa-folder-open"></i></div>
+            Портфель порожній
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- MODALS -->
-  <div id="modal-credit" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
-      <h3 id="credit-modal-title" class="text-lg font-bold mb-4 text-slate-800">Додати борг</h3>
+  
+  <!-- Credit Modal -->
+  <div id="modal-credit" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transform scale-100 transition-transform">
+      <div class="flex justify-between items-center mb-5">
+        <h3 id="credit-modal-title" class="text-lg font-bold text-slate-800">Додати кредитний ліміт</h3>
+        <button id="cancel-credit" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+      </div>
       <form id="form-credit" class="space-y-4">
-        <!-- Hidden field for ID -->
         <input type="hidden" name="docId">
-        
         <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1">Банк</label>
-          <select name="bank" class="w-full p-2.5 border border-slate-300 rounded-lg outline-none bg-white">
-            <option value="Sense Bank">Sense Bank</option>
-            <option value="Monobank">Monobank</option>
-            <option value="PrivatBank">PrivatBank</option>
-            <option value="KredoBank">KredoBank</option>
-            <option value="PUMB">PUMB</option>
-            <option value="Oschadbank">Oschadbank</option>
-            <option value="A-Bank">A-Bank</option>
-            <option value="Globus">Globus</option>
-            <option value="Radabank">Radabank</option>
-            <option value="Credit Dnipro">Credit Dnipro</option>
-          </select>
-        </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1">Сума боргу</label>
-          <!-- Changed to text to allow comma -->
-          <input type="text" inputmode="decimal" name="amount" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="0.00">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Банк</label>
+          <div class="relative">
+            <select name="bank" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none appearance-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition cursor-pointer font-medium text-slate-700">
+                <option value="Sense Bank">Sense Bank</option>
+                <option value="PrivatBank">PrivatBank</option>
+                <option value="Ukrgasbank">Ukrgasbank (Укргаз)</option>
+                <option value="PUMB">PUMB</option>
+                <option value="Oschadbank">Oschadbank</option>
+                <option value="Radabank">Radabank</option>
+                <option value="Credit Dnipro">Credit Dnipro</option>
+            </select>
+            <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none text-xs"><i class="fas fa-chevron-down"></i></div>
+          </div>
         </div>
         <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1">Повернути до</label>
-          <input type="date" name="deadline" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Сума заборгованості</label>
+          <div class="relative">
+             <span class="absolute left-3 top-3 text-slate-400">₴</span>
+             <input type="text" inputmode="decimal" name="amount" required class="w-full p-3 pl-8 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition font-bold text-slate-700" placeholder="0.00">
+          </div>
         </div>
-        <div class="flex gap-2 pt-2">
-          <button type="button" id="cancel-credit" class="flex-1 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Скасувати</button>
-          <button type="submit" id="submit-credit-btn" class="flex-1 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg">Зберегти</button>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Повернути до</label>
+          <input type="date" name="deadline" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition text-slate-700">
         </div>
+        <button type="submit" id="submit-credit-btn" class="w-full py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-black transition shadow-lg mt-2">Зберегти</button>
       </form>
     </div>
   </div>
 
-  <div id="modal-bond" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-      <h3 id="bond-modal-title" class="text-lg font-bold mb-4 text-slate-800">Купити облігацію</h3>
+  <!-- Bond Modal -->
+  <div id="modal-bond" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div class="flex justify-between items-center mb-5">
+        <h3 id="bond-modal-title" class="text-lg font-bold text-slate-800">Купити облігацію</h3>
+        <button id="cancel-bond" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+      </div>
       <form id="form-bond" class="space-y-4">
-        <!-- Hidden field for ID -->
         <input type="hidden" name="docId">
-        
         <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1">Назва / ISIN</label>
-          <input type="text" name="name" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="Військові...">
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Назва / ISIN</label>
+          <input type="text" name="name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition font-medium" placeholder="Військові...">
         </div>
-        <div>
-          <label class="block text-xs font-medium text-slate-500 mb-1">Брокер</label>
-          <select name="broker" class="w-full p-2.5 border border-slate-300 rounded-lg outline-none bg-white">
-            <option value="Sense">Sense</option>
-            <option value="ICU">ICU</option>
-            <option value="Kinto">Kinto</option>
-            <option value="Univer">Univer</option>
-            <option value="Dragon">Dragon Capital</option>
-            <option value="Mono">Monobank</option>
-            <option value="Diia">Дія</option>
-          </select>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Брокер</label>
+              <div class="relative">
+                <select name="broker" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none appearance-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition cursor-pointer font-medium text-slate-700">
+                    <option value="Sense Bank">Sense Bank</option>
+                    <option value="ICU">ICU</option>
+                    <option value="Kinto">Kinto (Кінто)</option>
+                    <option value="Univer">Univer (Універ)</option>
+                    <option value="Ukrgasbank">Ukrgasbank</option>
+                </select>
+                <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none text-xs"><i class="fas fa-chevron-down"></i></div>
+              </div>
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Банк оплати</label>
+                <div class="relative">
+                    <select name="purchaseBank" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none appearance-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition cursor-pointer font-medium text-slate-700">
+                        <option value="Власні">Власні</option>
+                        <option value="Sense Bank">Sense Bank</option>
+                        <option value="PrivatBank">PrivatBank</option>
+                        <option value="Ukrgasbank">Ukrgasbank</option>
+                        <option value="PUMB">PUMB</option>
+                        <option value="Oschadbank">Oschadbank</option>
+                        <option value="Radabank">Radabank</option>
+                        <option value="Credit Dnipro">Credit Dnipro</option>
+                    </select>
+                    <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none text-xs"><i class="fas fa-chevron-down"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Дата купівлі</label>
+                <input type="date" name="purchaseDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition text-sm">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Дата виплати</label>
+                <input type="date" name="maturityDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition text-sm">
+            </div>
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">Кількість</label>
-            <input type="text" inputmode="numeric" name="count" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1">
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Кількість</label>
+            <input type="text" inputmode="numeric" name="count" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition font-bold text-center" placeholder="1">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">Куп (1 шт)</label>
-            <input type="text" inputmode="decimal" name="buyPrice" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1000">
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Куп (1 шт)</label>
+            <input type="text" inputmode="decimal" name="buyPrice" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition font-bold text-center" placeholder="1000">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-500 mb-1">Пот (1 шт)</label>
-            <input type="text" inputmode="decimal" name="currentPrice" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1000">
+            <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Пот (1 шт)</label>
+            <input type="text" inputmode="decimal" name="currentPrice" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition font-bold text-center" placeholder="1000">
           </div>
         </div>
 
-        <div class="flex gap-2 pt-2">
-          <button type="button" id="cancel-bond" class="flex-1 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Скасувати</button>
-          <button type="submit" id="submit-bond-btn" class="flex-1 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg">Зберегти</button>
-        </div>
+        <button type="submit" id="submit-bond-btn" class="w-full py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-black transition shadow-lg mt-2">Зберегти</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Sell Modal -->
+  <div id="modal-sell" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border-t-4 border-green-500">
+      <div class="flex justify-between items-center mb-5">
+        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-coins text-green-500"></i> Продаж</h3>
+        <button id="cancel-sell" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+      </div>
+      <p id="sell-bond-name" class="text-sm font-medium text-slate-500 mb-4 bg-slate-50 p-2 rounded-lg text-center"></p>
+      
+      <form id="form-sell" class="space-y-4">
+        <input type="hidden" name="bondId">
+        
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Банк зарахування</label>
+          <div class="relative">
+            <select name="targetBank" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none appearance-none focus:ring-2 focus:ring-green-100 focus:border-green-400 transition cursor-pointer font-medium text-slate-700">
+                <option value="Sense Bank">Sense Bank</option>
+                <option value="PrivatBank">PrivatBank</option>
+                <option value="Ukrgasbank">Ukrgasbank</option>
+                <option value="PUMB">PUMB</option>
+                <option value="Oschadbank">Oschadbank</option>
+                <option value="Radabank">Radabank</option>
+                <option value="Credit Dnipro">Credit Dnipro</option>
+            </select>
+            <div class="absolute right-3 top-3.5 text-slate-400 pointer-events-none text-xs"><i class="fas fa-chevron-down"></i></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Кількість (макс: <span id="sell-max-count">0</span>)</label>
+              <input type="text" inputmode="numeric" name="saleCount" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-100 focus:border-green-400 transition font-bold text-center" placeholder="1">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Ціна (1 шт)</label>
+              <input type="text" inputmode="decimal" name="salePrice" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-100 focus:border-green-400 transition font-bold text-center" placeholder="1050">
+            </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Дата продажу</label>
+          <input type="date" name="saleDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-100 focus:border-green-400 transition">
+        </div>
+
+        <button type="submit" class="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition shadow-lg mt-2">Підтвердити продаж</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div id="modal-history" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+      <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+        <div>
+            <h3 class="text-xl font-bold text-slate-800" id="history-bond-name">Історія</h3>
+            <p class="text-xs text-slate-500 mt-1">Детальна інформація про операції</p>
+        </div>
+        <button id="close-history" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times text-xl"></i></button>
+      </div>
+      
+      <div class="p-6 overflow-y-auto custom-scroll">
+        <!-- Purchase Info -->
+        <div class="mb-8">
+            <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fas fa-shopping-cart"></i> Купівля</h4>
+            <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                        <div class="text-blue-400 text-xs font-medium mb-1">Дата</div>
+                        <div class="font-bold text-slate-700" id="hist-p-date">-</div>
+                    </div>
+                    <div>
+                        <div class="text-blue-400 text-xs font-medium mb-1">Банк оплати</div>
+                        <div class="font-bold text-slate-700" id="hist-p-bank">-</div>
+                    </div>
+                    <div>
+                        <div class="text-blue-400 text-xs font-medium mb-1">Кількість</div>
+                        <div class="font-bold text-slate-700" id="hist-p-count">-</div>
+                    </div>
+                    <div>
+                        <div class="text-blue-400 text-xs font-medium mb-1">Ціна купівлі</div>
+                        <div class="font-bold text-slate-700" id="hist-p-price">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sales History -->
+        <div>
+            <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fas fa-hand-holding-usd"></i> Історія Продажів</h4>
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                <table class="w-full text-sm text-left">
+                    <thead class="bg-slate-50 text-slate-500 text-xs font-semibold border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3">Дата</th>
+                            <th class="px-4 py-3">Банк</th>
+                            <th class="px-4 py-3 text-center">К-сть</th>
+                            <th class="px-4 py-3 text-right">Куп</th>
+                            <th class="px-4 py-3 text-right">Прод</th>
+                            <th class="px-4 py-3 text-right">Прибуток</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-sales-list" class="divide-y divide-slate-100">
+                        <!-- injected via JS -->
+                    </tbody>
+                </table>
+                <div id="history-empty" class="p-6 text-center text-slate-400 text-xs hidden">Продажів ще не було</div>
+            </div>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- TOAST -->
-  <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-3 rounded-lg shadow-lg hidden notification z-50">
-    <i class="fas fa-check-circle text-green-400 mr-2"></i> <span id="toast-msg">Повідомлення</span>
+  <div id="toast" class="fixed bottom-6 right-6 bg-slate-800 text-white px-5 py-4 rounded-xl shadow-2xl hidden notification z-50 flex items-center gap-3">
+    <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-xs text-white"><i class="fas fa-check"></i></div>
+    <span id="toast-msg" class="font-medium text-sm">Повідомлення</span>
   </div>
 
   <!-- Firebase + App logic -->
@@ -254,7 +435,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import {
-      getFirestore, collection, addDoc, doc, setDoc, getDocs, onSnapshot, query, orderBy, deleteDoc, updateDoc
+      getFirestore, collection, addDoc, doc, setDoc, getDocs, onSnapshot, query, orderBy, deleteDoc, updateDoc, getDoc
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
     // ---- ВАШІ КЛЮЧІ ----
@@ -286,12 +467,15 @@
     // Forms
     const formCredit = document.getElementById('form-credit');
     const formBond = document.getElementById('form-bond');
+    const formSell = document.getElementById('form-sell');
 
     // Modal triggers
     document.getElementById('open-credit').addEventListener('click', () => openModal('credit'));
     document.getElementById('open-bond').addEventListener('click', () => openModal('bond'));
     document.getElementById('cancel-credit').addEventListener('click', () => closeModal('credit'));
     document.getElementById('cancel-bond').addEventListener('click', () => closeModal('bond'));
+    document.getElementById('cancel-sell').addEventListener('click', () => closeModal('sell'));
+    document.getElementById('close-history').addEventListener('click', () => closeModal('history'));
 
     // Login / Logout
     btnLogin.addEventListener('click', async () => {
@@ -315,6 +499,7 @@
       if (user) {
         currentUid = user.uid;
         userArea.classList.remove('hidden');
+        userArea.classList.add('flex');
         btnLogin.classList.add('hidden');
         loginPrompt.classList.add('hidden');
         userEmailEl.innerText = user.email || user.displayName;
@@ -322,6 +507,7 @@
       } else {
         currentUid = null;
         userArea.classList.add('hidden');
+        userArea.classList.remove('flex');
         btnLogin.classList.remove('hidden');
         loginPrompt.classList.remove('hidden');
         userEmailEl.innerText = '';
@@ -398,16 +584,57 @@
       const payload = {
         name: data.get('name'),
         broker: data.get('broker'),
-        count: parseMoney(data.get('count')), // technically count is int but let's allow flexibility
+        purchaseDate: data.get('purchaseDate') || new Date().toISOString().split('T')[0],
+        maturityDate: data.get('maturityDate') || '',
+        count: parseMoney(data.get('count')),
         buyPrice: parseMoney(data.get('buyPrice')),
-        currentPrice: parseMoney(data.get('currentPrice'))
+        currentPrice: parseMoney(data.get('currentPrice')),
+        purchaseBank: data.get('purchaseBank') || 'Не вказано'
       };
 
       if (id) {
         await updateDoc(doc(db, 'users', currentUid, 'bonds', id), payload);
       } else {
+        payload.sales = []; // Init sales array for new bond
         await addDoc(collection(db, 'users', currentUid, 'bonds'), payload);
       }
+    }
+
+    async function recordSaleRemote(bondId, saleData) {
+        if(!currentUid) return;
+        const bondRef = doc(db, 'users', currentUid, 'bonds', bondId);
+        
+        try {
+            const bondSnap = await getDoc(bondRef);
+            if (!bondSnap.exists()) throw "Bond not found";
+            
+            const bond = bondSnap.data();
+            const currentCount = Number(bond.count);
+            const saleCount = Number(saleData.count);
+            
+            if (saleCount > currentCount) {
+                alert("Не можна продати більше, ніж є!");
+                return;
+            }
+            
+            const newCount = currentCount - saleCount;
+            const salesHistory = bond.sales || [];
+            salesHistory.push({
+                date: saleData.date,
+                count: saleCount,
+                price: Number(saleData.price),
+                targetBank: saleData.targetBank
+            });
+            
+            await updateDoc(bondRef, {
+                count: newCount,
+                sales: salesHistory
+            });
+            return true;
+        } catch (e) {
+            console.error(e);
+            throw e;
+        }
     }
 
     async function deleteRemote(type, id) {
@@ -427,8 +654,7 @@
     formCredit.onsubmit = async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
-      const id = fd.get('docId'); // get hidden id
-      
+      const id = fd.get('docId'); 
       try {
         await saveCreditRemote(fd, id);
         closeModal('credit');
@@ -443,8 +669,7 @@
     formBond.onsubmit = async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
-      const id = fd.get('docId'); // get hidden id
-
+      const id = fd.get('docId'); 
       try {
         await saveBondRemote(fd, id);
         closeModal('bond');
@@ -454,6 +679,28 @@
         showToast('Помилка: ' + err.message);
       }
     };
+
+    // Handle Sell Submit
+    formSell.onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const bondId = fd.get('bondId');
+        
+        const saleData = {
+            count: parseMoney(fd.get('saleCount')),
+            price: parseMoney(fd.get('salePrice')),
+            date: fd.get('saleDate'),
+            targetBank: fd.get('targetBank')
+        };
+        
+        try {
+            await recordSaleRemote(bondId, saleData);
+            closeModal('sell');
+            showToast('Продаж зафіксовано!');
+        } catch(err) {
+            showToast("Помилка продажу");
+        }
+    }
 
     // --- Render / Helpers ---
     function renderAll() {
@@ -477,40 +724,42 @@
         const days = Math.ceil((new Date(c.deadline) - new Date()) / (1000*60*60*24));
         const isUrgent = days < 5;
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 border-b border-slate-100 last:border-0';
+        tr.className = 'glass-row border-b border-slate-50 last:border-0';
         tr.innerHTML = `
-          <td class="px-4 py-3 font-medium text-slate-800">${escapeHtml(c.bank)}</td>
-          <td class="px-4 py-3 text-right font-bold text-slate-700">${formatCurrency(c.amount)}</td>
-          <td class="px-4 py-3 text-center">
-            <span class="px-2 py-1 rounded text-xs font-medium ${isUrgent ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}">
-              ${new Date(c.deadline).toLocaleDateString('uk-UA')} (${days} дн)
+          <td class="px-3 py-3">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500 font-bold text-sm shrink-0">
+                    <i class="fas fa-university"></i>
+                </div>
+                <div>
+                    <div class="font-bold text-slate-800 text-xs md:text-sm leading-tight">${escapeHtml(c.bank)}</div>
+                    <div class="text-[10px] text-slate-400 font-medium hidden sm:block">Ліміт</div>
+                </div>
+            </div>
+          </td>
+          <td class="px-2 py-3 text-right">
+            <div class="font-bold text-slate-700 text-sm font-mono">${formatCurrency(c.amount)}</div>
+          </td>
+          <td class="px-2 py-3 text-center">
+            <span class="px-2 py-1 rounded-md text-[10px] font-bold border ${isUrgent ? 'bg-red-50 text-red-600 border-red-100 animate-pulse' : 'bg-slate-100 text-slate-600 border-slate-200'}">
+              ${new Date(c.deadline).toLocaleDateString('uk-UA', {day:'numeric', month:'numeric'})} (${days} дн)
             </span>
           </td>
-          <td class="px-4 py-3 text-right whitespace-nowrap">
-            <button data-id="${c.id}" class="edit-credit text-blue-400 hover:text-blue-600 transition px-2 mr-1"><i class="fas fa-pen"></i></button>
-            <button data-id="${c.id}" class="delete-credit text-slate-400 hover:text-red-500 transition px-2"><i class="fas fa-trash"></i></button>
+          <td class="px-2 py-3 text-right whitespace-nowrap">
+            <div class="flex items-center justify-end gap-1">
+                <button data-id="${c.id}" class="add-to-calendar w-7 h-7 rounded-full bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition flex items-center justify-center" title="Нагадати"><i class="fas fa-bell text-[10px]"></i></button>
+                <button data-id="${c.id}" class="edit-credit w-7 h-7 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition flex items-center justify-center" title="Редагувати"><i class="fas fa-pen text-[10px]"></i></button>
+                <button data-id="${c.id}" class="delete-credit w-7 h-7 rounded-full bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition flex items-center justify-center" title="Видалити"><i class="fas fa-trash text-[10px]"></i></button>
+            </div>
           </td>
         `;
         list.appendChild(tr);
       });
 
-      // Attach Delete
-      document.querySelectorAll('.delete-credit').forEach(btn => {
-        btn.onclick = async (e) => {
-          const id = e.currentTarget.getAttribute('data-id');
-          if (!confirm('Видалити запис?')) return;
-          try { await deleteRemote('credits', id); showToast('Видалено'); } catch(err){ console.error(err); showToast('Помилка видалення'); }
-        };
-      });
-
-      // Attach Edit
-      document.querySelectorAll('.edit-credit').forEach(btn => {
-        btn.onclick = (e) => {
-          const id = e.currentTarget.getAttribute('data-id');
-          const item = appData.credits.find(i => i.id === id);
-          if(item) openModal('credit', item);
-        };
-      });
+      // Handlers (keep same)
+      document.querySelectorAll('.add-to-calendar').forEach(btn => btn.onclick = (e) => { const id = e.currentTarget.getAttribute('data-id'); const item = appData.credits.find(i => i.id === id); if(item) addToGoogleCalendar(item); });
+      document.querySelectorAll('.delete-credit').forEach(btn => btn.onclick = async (e) => { const id = e.currentTarget.getAttribute('data-id'); if (!confirm('Видалити запис?')) return; try { await deleteRemote('credits', id); showToast('Видалено'); } catch(err){ console.error(err); showToast('Помилка видалення'); } });
+      document.querySelectorAll('.edit-credit').forEach(btn => btn.onclick = (e) => { const id = e.currentTarget.getAttribute('data-id'); const item = appData.credits.find(i => i.id === id); if(item) openModal('credit', item); });
     }
 
     function renderBonds() {
@@ -524,86 +773,127 @@
       empty.classList.add('hidden');
       appData.bonds.forEach(b => {
         const profit = (b.currentPrice * b.count) - (b.buyPrice * b.count);
-        const isProfit = profit >= 0;
+        const realizedProfit = (b.sales || []).reduce((acc, sale) => acc + ((sale.price - b.buyPrice) * sale.count), 0);
+        const totalItemProfit = profit + realizedProfit;
+        const isProfit = totalItemProfit >= 0;
+        
+        const pDate = b.purchaseDate ? new Date(b.purchaseDate).toLocaleDateString('uk-UA', {day:'2-digit', month:'2-digit', year:'2-digit'}) : '-';
+        const mDate = b.maturityDate ? new Date(b.maturityDate).toLocaleDateString('uk-UA', {day:'2-digit', month:'2-digit', year:'2-digit'}) : '-';
+
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 border-b border-slate-100 last:border-0';
+        tr.className = 'glass-row border-b border-slate-50 last:border-0';
         tr.innerHTML = `
-          <td class="px-4 py-3">
-            <div class="font-bold text-slate-700 text-sm">${escapeHtml(b.name)}</div>
-            <span class="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-500 uppercase font-semibold">${escapeHtml(b.broker)}</span>
+          <td class="px-3 py-3">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">
+                    <i class="fas fa-file-contract"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="font-bold text-slate-800 text-xs md:text-sm leading-tight truncate max-w-[100px] sm:max-w-none" title="${escapeHtml(b.name)}">${escapeHtml(b.name)}</div>
+                    <div class="flex flex-wrap items-center gap-1 mt-0.5">
+                        <span class="bg-slate-100 text-slate-500 px-1 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border border-slate-200">${escapeHtml(b.broker)}</span>
+                        <div class="flex items-center text-[9px] text-slate-400 font-medium whitespace-nowrap">
+                            <span>${pDate}</span>
+                            <i class="fas fa-arrow-right mx-0.5 text-slate-300 text-[8px]"></i>
+                            <span>${mDate}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
           </td>
-          <td class="px-4 py-3 text-center text-sm text-slate-600">${b.count}</td>
-          <td class="px-4 py-3 text-right">
-            <input type="text" inputmode="decimal" value="${b.currentPrice}" data-id="${b.id}" class="price-input w-20 text-right bg-transparent hover:bg-white border border-transparent hover:border-slate-300 rounded px-1 text-sm focus:bg-white focus:border-blue-500 outline-none transition">
+          <td class="px-2 py-3 text-center">
+            <div class="font-bold text-slate-700 text-sm">${b.count}</div>
+            ${(b.sales && b.sales.length > 0) ? 
+                `<div class="text-[8px] font-bold text-green-600 bg-green-50 px-1 py-0.5 rounded inline-block -mt-0.5" title="Вже продано">
+                    -${b.sales.reduce((a,s)=>a+s.count,0)}
+                </div>` : ''}
           </td>
-          <td class="px-4 py-3 text-right font-bold text-sm ${isProfit ? 'text-green-600' : 'text-red-500'}">
-            ${isProfit ? '+' : ''}${formatCurrency(profit)}
+          <td class="px-2 py-3 text-right">
+            <div class="relative inline-block w-16 md:w-20 group/input">
+                <input type="text" inputmode="decimal" value="${b.currentPrice}" data-id="${b.id}" 
+                    class="price-input w-full text-right bg-slate-50 group-hover/input:bg-white border border-slate-200 focus:border-blue-500 rounded px-1.5 py-1 text-sm font-semibold outline-none transition shadow-sm focus:ring-1 focus:ring-blue-100 text-slate-700">
+            </div>
           </td>
-          <td class="px-4 py-3 text-right whitespace-nowrap">
-            <button data-id="${b.id}" class="edit-bond text-blue-400 hover:text-blue-600 transition px-2 mr-1"><i class="fas fa-pen"></i></button>
-            <button data-id="${b.id}" class="delete-bond text-slate-400 hover:text-red-500 transition px-2"><i class="fas fa-trash"></i></button>
+          <td class="px-2 py-3 text-right">
+            <div class="flex flex-col items-end">
+                <div class="font-bold text-xs md:text-sm font-mono ${isProfit ? 'text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100' : 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100'}">
+                    ${isProfit ? '+' : ''}${formatCurrency(totalItemProfit)}
+                </div>
+            </div>
+          </td>
+          <td class="px-2 py-3 text-right whitespace-nowrap">
+            <div class="flex items-center justify-end gap-1">
+                <button data-id="${b.id}" class="show-history w-7 h-7 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition flex items-center justify-center" title="Історія операцій">
+                    <i class="fas fa-scroll text-[10px]"></i>
+                </button>
+                <button data-id="${b.id}" class="sell-bond w-7 h-7 rounded-full bg-green-50 text-green-600 hover:bg-green-100 transition flex items-center justify-center" title="Продати">
+                    <i class="fas fa-hand-holding-usd text-[10px]"></i>
+                </button>
+                <button data-id="${b.id}" class="edit-bond w-7 h-7 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition flex items-center justify-center" title="Редагувати">
+                    <i class="fas fa-pen text-[10px]"></i>
+                </button>
+                <button data-id="${b.id}" class="delete-bond w-7 h-7 rounded-full bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition flex items-center justify-center" title="Видалити">
+                    <i class="fas fa-trash text-[10px]"></i>
+                </button>
+            </div>
           </td>
         `;
         list.appendChild(tr);
       });
 
-      // Attach Delete
-      document.querySelectorAll('.delete-bond').forEach(btn=>{
-        btn.onclick = async (e) => {
-          const id = e.currentTarget.getAttribute('data-id');
-          if(!confirm('Видалити запис?')) return;
-          try { await deleteRemote('bonds', id); showToast('Видалено'); } catch(err){ console.error(err); showToast('Помилка видалення'); }
-        };
-      });
-
-      // Attach Edit
-      document.querySelectorAll('.edit-bond').forEach(btn => {
+      // Handlers
+      document.querySelectorAll('.delete-bond').forEach(btn => btn.onclick = async (e) => { const id = e.currentTarget.getAttribute('data-id'); if(!confirm('Видалити запис?')) return; try { await deleteRemote('bonds', id); showToast('Видалено'); } catch(err){ console.error(err); showToast('Помилка видалення'); } });
+      document.querySelectorAll('.edit-bond').forEach(btn => btn.onclick = (e) => { const id = e.currentTarget.getAttribute('data-id'); const item = appData.bonds.find(i => i.id === id); if(item) openModal('bond', item); });
+      document.querySelectorAll('.sell-bond').forEach(btn => btn.onclick = (e) => { const id = e.currentTarget.getAttribute('data-id'); const item = appData.bonds.find(i => i.id === id); if(item) openModal('sell', item); });
+      document.querySelectorAll('.price-input').forEach(inp => inp.onchange = async (e) => { const id = e.target.getAttribute('data-id'); const val = e.target.value; try { await updatePriceRemote(id, val); showToast('Ціна оновлена'); } catch(err){ console.error(err); showToast('Помилка оновлення'); } });
+      
+      // History Button Handler
+      document.querySelectorAll('.show-history').forEach(btn => {
         btn.onclick = (e) => {
-          const id = e.currentTarget.getAttribute('data-id');
-          const item = appData.bonds.find(i => i.id === id);
-          if(item) openModal('bond', item);
-        };
-      });
-
-      // Attach Inline Price Edit
-      document.querySelectorAll('.price-input').forEach(inp=>{
-        inp.onchange = async (e) => {
-          const id = e.target.getAttribute('data-id');
-          const val = e.target.value;
-          try { await updatePriceRemote(id, val); showToast('Ціна оновлена'); } catch(err){ console.error(err); showToast('Помилка оновлення'); }
-        };
+            const id = e.currentTarget.getAttribute('data-id');
+            const item = appData.bonds.find(i => i.id === id);
+            if(item) openHistoryModal(item);
+        }
       });
     }
 
     function updateStats() {
       const totalDebt = appData.credits.reduce((sum, c) => sum + Number(c.amount || 0), 0);
       let totalAssets = 0;
-      let totalInvested = 0;
       const brokers = {};
+      
+      let totalHoldingsProfit = 0;
+      let totalRealizedProfit = 0;
+
       (appData.bonds || []).forEach(b => {
         totalAssets += (b.count * b.currentPrice);
-        totalInvested += (b.count * b.buyPrice);
+        totalHoldingsProfit += (b.count * (b.currentPrice - b.buyPrice));
+        const itemRealized = (b.sales || []).reduce((acc, sale) => acc + ((sale.price - b.buyPrice) * sale.count), 0);
+        totalRealizedProfit += itemRealized;
         brokers[b.broker] = (brokers[b.broker] || 0) + 1;
       });
-      const profit = totalAssets - totalInvested;
+
+      const totalProfit = totalHoldingsProfit + totalRealizedProfit;
       const netWorth = totalAssets - totalDebt;
+
       document.getElementById('stat-assets').innerText = formatCurrency(totalAssets);
       document.getElementById('stat-debt').innerText = formatCurrency(totalDebt);
       const profitEl = document.getElementById('stat-profit');
-      profitEl.innerText = (profit > 0 ? '+' : '') + formatCurrency(profit);
-      profitEl.className = `text-3xl font-bold mt-2 ${profit >= 0 ? 'text-blue-600' : 'text-orange-600'}`;
+      profitEl.innerText = (totalProfit > 0 ? '+' : '') + formatCurrency(totalProfit);
+      profitEl.className = `text-3xl font-extrabold tracking-tight ${totalProfit >= 0 ? 'text-blue-600' : 'text-orange-500'}`;
       document.getElementById('stat-networth').innerText = formatCurrency(netWorth);
+      
       const brokersContainer = document.getElementById('stat-brokers');
       brokersContainer.innerHTML = '';
       Object.entries(brokers).forEach(([name, count]) => {
-        brokersContainer.innerHTML += `<span class="bg-green-50 text-green-700 border border-green-100 px-2 py-1 rounded text-xs font-medium">${escapeHtml(name)}: ${count}</span>`;
+        brokersContainer.innerHTML += `<span class="bg-green-50 text-green-700 border border-green-100 px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">${escapeHtml(name)}: ${count}</span>`;
       });
 
       const alertEl = document.getElementById('stat-debt-alert');
       if (appData.credits.length > 0) {
         const nearest = [...appData.credits].sort((a,b)=> new Date(a.deadline)-new Date(b.deadline))[0];
         const days = Math.ceil((new Date(nearest.deadline) - new Date()) / (1000*60*60*24));
-        alertEl.innerHTML = `<span class="${days < 5 ? 'text-red-600 font-bold animate-pulse' : ''}"><i class="fas fa-clock mr-1"></i> ${escapeHtml(nearest.bank)}: ${days} дн.</span>`;
+        alertEl.innerHTML = `<span class="${days < 5 ? 'text-red-500 font-bold animate-pulse' : 'text-slate-500'}"><i class="fas fa-clock mr-1"></i> ${escapeHtml(nearest.bank)}: ${days} дн.</span>`;
       } else {
         alertEl.innerText = "Боргів немає";
       }
@@ -637,10 +927,9 @@
         if(!currentUid) { showToast('Увійдіть для імпорту'); return; }
         
         for(const c of loaded.credits) {
-          await saveCreditRemote(new Map(Object.entries(c)), null); // reuse helper essentially
+          await saveCreditRemote(new Map(Object.entries(c)), null); 
         }
         for(const b of loaded.bonds) {
-           // Simplify bulk add
            await addDoc(collection(db, 'users', currentUid, 'bonds'), b);
         }
         showToast('Імпорт завершено!');
@@ -655,41 +944,92 @@
     // --- UTILS ---
     function openModal(type, data = null) {
       const modal = document.getElementById(`modal-${type}`);
-      const form = document.getElementById(`form-${type}`);
-      const title = document.getElementById(`${type}-modal-title`);
-      const submitBtn = document.getElementById(`submit-${type}-btn`);
-      
-      modal.classList.remove('hidden');
-      
-      // Reset form first
-      form.reset();
-      
-      if (data) {
-        // Edit Mode
-        form.docId.value = data.id;
-        title.innerText = type === 'credit' ? 'Редагувати борг' : 'Редагувати облігацію';
-        submitBtn.innerText = 'Оновити';
-        
-        // Populate fields
-        for (const [key, value] of Object.entries(data)) {
-          if (form.elements[key]) {
-            form.elements[key].value = value;
-          }
-        }
+      if(type === 'sell') {
+          const form = document.getElementById('form-sell');
+          form.reset();
+          form.bondId.value = data.id;
+          document.getElementById('sell-bond-name').innerText = data.name;
+          document.getElementById('sell-max-count').innerText = data.count;
+          form.salePrice.value = data.currentPrice;
+          form.saleDate.valueAsDate = new Date();
+      } else if (type === 'history') {
+          // Handled by openHistoryModal
       } else {
-        // Create Mode
-        form.docId.value = ''; // clear ID
-        title.innerText = type === 'credit' ? 'Додати борг' : 'Купити облігацію';
-        submitBtn.innerText = 'Зберегти';
-        
-        // Set default date if needed
-        const d = form.querySelector(`input[type="date"]`);
-        if(d) d.valueAsDate = new Date();
+          const form = document.getElementById(`form-${type}`);
+          const title = document.getElementById(`${type}-modal-title`);
+          const submitBtn = document.getElementById(`submit-${type}-btn`);
+          form.reset();
+          if (data) {
+            // Edit Mode
+            form.docId.value = data.id;
+            title.innerText = type === 'credit' ? 'Редагувати кредитний ліміт' : 'Редагувати облігацію';
+            submitBtn.innerText = 'Оновити';
+            for (const [key, value] of Object.entries(data)) {
+              if (form.elements[key]) form.elements[key].value = value;
+            }
+          } else {
+            form.docId.value = ''; 
+            title.innerText = type === 'credit' ? 'Додати кредитний ліміт' : 'Купити облігацію';
+            submitBtn.innerText = 'Зберегти';
+            const dateInputs = form.querySelectorAll(`input[type="date"]`);
+            dateInputs.forEach(d => { if(!d.value) d.valueAsDate = new Date(); });
+          }
       }
+      modal.classList.remove('hidden');
+      setTimeout(() => modal.firstElementChild.classList.remove('scale-95', 'opacity-0'), 10);
+    }
+
+    function openHistoryModal(item) {
+        const modal = document.getElementById('modal-history');
+        document.getElementById('history-bond-name').innerText = item.name;
+        
+        // Purchase Data
+        document.getElementById('hist-p-date').innerText = new Date(item.purchaseDate).toLocaleDateString('uk-UA');
+        document.getElementById('hist-p-bank').innerText = item.purchaseBank || 'Не вказано';
+        // Calculate original total count (current + sold)
+        const totalSold = (item.sales || []).reduce((a, s) => a + s.count, 0);
+        const originalCount = Number(item.count) + totalSold;
+        
+        document.getElementById('hist-p-count').innerText = `${originalCount} шт`;
+        document.getElementById('hist-p-price').innerText = formatCurrency(item.buyPrice);
+        
+        // Sales List
+        const salesList = document.getElementById('history-sales-list');
+        const emptyState = document.getElementById('history-empty');
+        salesList.innerHTML = '';
+        
+        if (!item.sales || item.sales.length === 0) {
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+            item.sales.forEach(sale => {
+                const buyPrice = Number(item.buyPrice);
+                const sellPrice = Number(sale.price);
+                const count = Number(sale.count);
+                const profit = (sellPrice - buyPrice) * count;
+                const isProfit = profit >= 0;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium whitespace-nowrap">${new Date(sale.date).toLocaleDateString('uk-UA')}</td>
+                    <td class="px-4 py-3 text-slate-500 text-xs">${sale.targetBank || '-'}</td>
+                    <td class="px-4 py-3 text-center font-bold">${count}</td>
+                    <td class="px-4 py-3 text-right text-xs text-slate-400">${formatCurrency(buyPrice)}</td>
+                    <td class="px-4 py-3 text-right text-xs font-medium text-slate-700">${formatCurrency(sellPrice)}</td>
+                    <td class="px-4 py-3 text-right font-bold ${isProfit ? 'text-green-600' : 'text-red-500'}">
+                        ${isProfit ? '+' : ''}${formatCurrency(profit)}
+                    </td>
+                `;
+                salesList.appendChild(tr);
+            });
+        }
+        
+        modal.classList.remove('hidden');
     }
     
     function closeModal(type) {
-      document.getElementById(`modal-${type}`).classList.add('hidden');
+      const modal = document.getElementById(`modal-${type}`);
+      modal.classList.add('hidden');
     }
     
     function showToast(msg) { 
@@ -700,7 +1040,7 @@
     }
     
     function formatCurrency(val){ 
-      return new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(val)||0); 
+      return new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Number(val)||0); 
     }
     
     function escapeHtml(s){ 
@@ -708,6 +1048,21 @@
       return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); 
     }
 
+    // --- CALENDAR HELPER ---
+    function addToGoogleCalendar(item) {
+        const deadlineDate = new Date(item.deadline);
+        const remindDate = new Date(deadlineDate);
+        remindDate.setDate(deadlineDate.getDate() - 5);
+        const pad = (n) => n < 10 ? '0'+n : n;
+        const startStr = deadlineDate.getFullYear() + pad(deadlineDate.getMonth()+1) + pad(deadlineDate.getDate());
+        const nextDay = new Date(deadlineDate);
+        nextDay.setDate(deadlineDate.getDate() + 1);
+        const endStr = nextDay.getFullYear() + pad(nextDay.getMonth()+1) + pad(nextDay.getDate());
+        const title = `Повернути борг: ${item.bank}`;
+        const details = `Сума: ${item.amount} грн. Дедлайн: ${item.deadline}`;
+        const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startStr}/${endStr}&details=${encodeURIComponent(details)}`;
+        window.open(url, '_blank');
+    }
   </script>
 </body>
 </html>
