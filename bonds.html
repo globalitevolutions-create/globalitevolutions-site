@@ -35,7 +35,6 @@
           <i class="fab fa-google"></i> <span class="hidden sm:inline">Увійти</span>
         </button>
 
-        <!-- Hidden file input -->
         <input type="file" id="file-input" class="hidden" accept=".json">
         
         <button id="btn-import" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 border border-slate-600" title="Імпорт з файлу">
@@ -161,8 +160,11 @@
   <!-- MODALS -->
   <div id="modal-credit" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6">
-      <h3 class="text-lg font-bold mb-4 text-slate-800">Додати борг</h3>
+      <h3 id="credit-modal-title" class="text-lg font-bold mb-4 text-slate-800">Додати борг</h3>
       <form id="form-credit" class="space-y-4">
+        <!-- Hidden field for ID -->
+        <input type="hidden" name="docId">
+        
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1">Банк</label>
           <select name="bank" class="w-full p-2.5 border border-slate-300 rounded-lg outline-none bg-white">
@@ -180,7 +182,8 @@
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1">Сума боргу</label>
-          <input type="number" name="amount" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="0.00">
+          <!-- Changed to text to allow comma -->
+          <input type="text" inputmode="decimal" name="amount" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="0.00">
         </div>
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1">Повернути до</label>
@@ -188,7 +191,7 @@
         </div>
         <div class="flex gap-2 pt-2">
           <button type="button" id="cancel-credit" class="flex-1 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Скасувати</button>
-          <button type="submit" class="flex-1 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg">Зберегти</button>
+          <button type="submit" id="submit-credit-btn" class="flex-1 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg">Зберегти</button>
         </div>
       </form>
     </div>
@@ -196,8 +199,11 @@
 
   <div id="modal-bond" class="fixed inset-0 bg-black/50 hidden z-50 flex items-center justify-center p-4 backdrop-blur-sm">
     <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
-      <h3 class="text-lg font-bold mb-4 text-slate-800">Купити облігацію</h3>
+      <h3 id="bond-modal-title" class="text-lg font-bold mb-4 text-slate-800">Купити облігацію</h3>
       <form id="form-bond" class="space-y-4">
+        <!-- Hidden field for ID -->
+        <input type="hidden" name="docId">
+        
         <div>
           <label class="block text-xs font-medium text-slate-500 mb-1">Назва / ISIN</label>
           <input type="text" name="name" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="Військові...">
@@ -217,21 +223,21 @@
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1">Кількість</label>
-            <input type="number" name="count" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1">
+            <input type="text" inputmode="numeric" name="count" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1">Куп (1 шт)</label>
-            <input type="number" name="buyPrice" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1000">
+            <input type="text" inputmode="decimal" name="buyPrice" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1000">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-500 mb-1">Пот (1 шт)</label>
-            <input type="number" name="currentPrice" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1000">
+            <input type="text" inputmode="decimal" name="currentPrice" required class="w-full p-2.5 border border-slate-300 rounded-lg outline-none" placeholder="1000">
           </div>
         </div>
 
         <div class="flex gap-2 pt-2">
           <button type="button" id="cancel-bond" class="flex-1 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">Скасувати</button>
-          <button type="submit" class="flex-1 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg">Зберегти</button>
+          <button type="submit" id="submit-bond-btn" class="flex-1 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg">Зберегти</button>
         </div>
       </form>
     </div>
@@ -251,7 +257,7 @@
       getFirestore, collection, addDoc, doc, setDoc, getDocs, onSnapshot, query, orderBy, deleteDoc, updateDoc
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-    // ---- ВАШІ КЛЮЧІ (ВЖЕ ВСТАВЛЕНІ) ----
+    // ---- ВАШІ КЛЮЧІ ----
     const firebaseConfig = {
       apiKey: "AIzaSyCsqGYeCb8oCRR9xb63XBaQlBpHrpifdQw",
       authDomain: "bonds-2fe74.firebaseapp.com",
@@ -261,7 +267,6 @@
       appId: "1:755290713156:web:ba709a020293c5557ce011",
       measurementId: "G-BSPYTTPK3Q"
     };
-    // ----------------------------------------
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -278,6 +283,10 @@
     const btnImport = document.getElementById('btn-import');
     const fileInput = document.getElementById('file-input');
 
+    // Forms
+    const formCredit = document.getElementById('form-credit');
+    const formBond = document.getElementById('form-bond');
+
     // Modal triggers
     document.getElementById('open-credit').addEventListener('click', () => openModal('credit'));
     document.getElementById('open-bond').addEventListener('click', () => openModal('bond'));
@@ -290,7 +299,7 @@
         await signInWithPopup(auth, provider);
       } catch (err) {
         console.error(err);
-        showToast('Помилка: Не вдалося увійти (перевірте налаштування Auth)');
+        showToast('Помилка: Не вдалося увійти');
       }
     });
     btnLogout.addEventListener('click', async () => {
@@ -339,7 +348,6 @@
         renderAll();
       }, err => {
         console.error('credits snapshot error', err);
-        // showToast('Увага: створіть базу даних у Firestore Console!');
       });
 
       // bonds
@@ -362,70 +370,85 @@
       if (unsubBonds) unsubBonds(), unsubBonds = null;
     }
 
+    // --- HELPER: Parse numbers with comma or dot ---
+    function parseMoney(val) {
+      if (!val) return 0;
+      // replace comma with dot, remove spaces
+      return parseFloat(val.toString().replace(',', '.').replace(/\s/g, ''));
+    }
+
     // --- CRUD to Firestore ---
-    async function addCreditRemote(c) {
+    async function saveCreditRemote(data, id) {
       if(!currentUid) { showToast('Спочатку увійдіть'); return; }
-      await addDoc(collection(db, 'users', currentUid, 'credits'), {
-        bank: c.bank,
-        amount: Number(c.amount),
-        deadline: c.deadline
-      });
+      const payload = {
+        bank: data.get('bank'),
+        amount: parseMoney(data.get('amount')),
+        deadline: data.get('deadline')
+      };
+      
+      if (id) {
+        await updateDoc(doc(db, 'users', currentUid, 'credits', id), payload);
+      } else {
+        await addDoc(collection(db, 'users', currentUid, 'credits'), payload);
+      }
     }
-    async function addBondRemote(b) {
+
+    async function saveBondRemote(data, id) {
       if(!currentUid) { showToast('Спочатку увійдіть'); return; }
-      await addDoc(collection(db, 'users', currentUid, 'bonds'), {
-        name: b.name,
-        broker: b.broker,
-        count: Number(b.count),
-        buyPrice: Number(b.buyPrice),
-        currentPrice: Number(b.currentPrice)
-      });
+      const payload = {
+        name: data.get('name'),
+        broker: data.get('broker'),
+        count: parseMoney(data.get('count')), // technically count is int but let's allow flexibility
+        buyPrice: parseMoney(data.get('buyPrice')),
+        currentPrice: parseMoney(data.get('currentPrice'))
+      };
+
+      if (id) {
+        await updateDoc(doc(db, 'users', currentUid, 'bonds', id), payload);
+      } else {
+        await addDoc(collection(db, 'users', currentUid, 'bonds'), payload);
+      }
     }
+
     async function deleteRemote(type, id) {
       if(!currentUid) { showToast('Спочатку увійдіть'); return; }
       await deleteDoc(doc(db, 'users', currentUid, type, id));
     }
+
     async function updatePriceRemote(id, val) {
       if(!currentUid) return;
       const ref = doc(db, 'users', currentUid, 'bonds', id);
-      await updateDoc(ref, { currentPrice: Number(val) });
+      await updateDoc(ref, { currentPrice: parseMoney(val) });
     }
 
-    // --- UI: Forms ---
-    document.getElementById('form-credit').onsubmit = async (e) => {
+    // --- UI: Forms & Edit Logic ---
+
+    // Handle Credit Submit
+    formCredit.onsubmit = async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
-      const c = {
-        bank: fd.get('bank'),
-        amount: Number(fd.get('amount')),
-        deadline: fd.get('deadline')
-      };
+      const id = fd.get('docId'); // get hidden id
+      
       try {
-        await addCreditRemote(c);
+        await saveCreditRemote(fd, id);
         closeModal('credit');
-        e.target.reset();
-        showToast('Кредит додано');
+        showToast(id ? 'Кредит оновлено' : 'Кредит додано');
       } catch (err) {
         console.error(err);
         showToast('Помилка: ' + err.message);
       }
     };
 
-    document.getElementById('form-bond').onsubmit = async (e) => {
+    // Handle Bond Submit
+    formBond.onsubmit = async (e) => {
       e.preventDefault();
       const fd = new FormData(e.target);
-      const b = {
-        name: fd.get('name'),
-        broker: fd.get('broker'),
-        count: Number(fd.get('count')),
-        buyPrice: Number(fd.get('buyPrice')),
-        currentPrice: Number(fd.get('currentPrice'))
-      };
+      const id = fd.get('docId'); // get hidden id
+
       try {
-        await addBondRemote(b);
+        await saveBondRemote(fd, id);
         closeModal('bond');
-        e.target.reset();
-        showToast('Облігацію куплено');
+        showToast(id ? 'Облігацію оновлено' : 'Облігацію куплено');
       } catch (err) {
         console.error(err);
         showToast('Помилка: ' + err.message);
@@ -449,6 +472,7 @@
       }
       empty.classList.add('hidden');
       const sorted = [...appData.credits].sort((a,b)=> new Date(a.deadline)-new Date(b.deadline));
+      
       sorted.forEach(c => {
         const days = Math.ceil((new Date(c.deadline) - new Date()) / (1000*60*60*24));
         const isUrgent = days < 5;
@@ -462,18 +486,29 @@
               ${new Date(c.deadline).toLocaleDateString('uk-UA')} (${days} дн)
             </span>
           </td>
-          <td class="px-4 py-3 text-right">
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+            <button data-id="${c.id}" class="edit-credit text-blue-400 hover:text-blue-600 transition px-2 mr-1"><i class="fas fa-pen"></i></button>
             <button data-id="${c.id}" class="delete-credit text-slate-400 hover:text-red-500 transition px-2"><i class="fas fa-trash"></i></button>
           </td>
         `;
         list.appendChild(tr);
       });
 
+      // Attach Delete
       document.querySelectorAll('.delete-credit').forEach(btn => {
         btn.onclick = async (e) => {
           const id = e.currentTarget.getAttribute('data-id');
           if (!confirm('Видалити запис?')) return;
           try { await deleteRemote('credits', id); showToast('Видалено'); } catch(err){ console.error(err); showToast('Помилка видалення'); }
+        };
+      });
+
+      // Attach Edit
+      document.querySelectorAll('.edit-credit').forEach(btn => {
+        btn.onclick = (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const item = appData.credits.find(i => i.id === id);
+          if(item) openModal('credit', item);
         };
       });
     }
@@ -499,18 +534,20 @@
           </td>
           <td class="px-4 py-3 text-center text-sm text-slate-600">${b.count}</td>
           <td class="px-4 py-3 text-right">
-            <input type="number" value="${b.currentPrice}" data-id="${b.id}" class="price-input w-20 text-right bg-transparent hover:bg-white border border-transparent hover:border-slate-300 rounded px-1 text-sm focus:bg-white focus:border-blue-500 outline-none transition">
+            <input type="text" inputmode="decimal" value="${b.currentPrice}" data-id="${b.id}" class="price-input w-20 text-right bg-transparent hover:bg-white border border-transparent hover:border-slate-300 rounded px-1 text-sm focus:bg-white focus:border-blue-500 outline-none transition">
           </td>
           <td class="px-4 py-3 text-right font-bold text-sm ${isProfit ? 'text-green-600' : 'text-red-500'}">
             ${isProfit ? '+' : ''}${formatCurrency(profit)}
           </td>
-          <td class="px-4 py-3 text-right">
+          <td class="px-4 py-3 text-right whitespace-nowrap">
+            <button data-id="${b.id}" class="edit-bond text-blue-400 hover:text-blue-600 transition px-2 mr-1"><i class="fas fa-pen"></i></button>
             <button data-id="${b.id}" class="delete-bond text-slate-400 hover:text-red-500 transition px-2"><i class="fas fa-trash"></i></button>
           </td>
         `;
         list.appendChild(tr);
       });
 
+      // Attach Delete
       document.querySelectorAll('.delete-bond').forEach(btn=>{
         btn.onclick = async (e) => {
           const id = e.currentTarget.getAttribute('data-id');
@@ -519,11 +556,21 @@
         };
       });
 
+      // Attach Edit
+      document.querySelectorAll('.edit-bond').forEach(btn => {
+        btn.onclick = (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          const item = appData.bonds.find(i => i.id === id);
+          if(item) openModal('bond', item);
+        };
+      });
+
+      // Attach Inline Price Edit
       document.querySelectorAll('.price-input').forEach(inp=>{
         inp.onchange = async (e) => {
           const id = e.target.getAttribute('data-id');
           const val = e.target.value;
-          try { await updatePriceRemote(id, Number(val)); showToast('Ціна оновлена'); } catch(err){ console.error(err); showToast('Помилка оновлення'); }
+          try { await updatePriceRemote(id, val); showToast('Ціна оновлена'); } catch(err){ console.error(err); showToast('Помилка оновлення'); }
         };
       });
     }
@@ -590,20 +637,11 @@
         if(!currentUid) { showToast('Увійдіть для імпорту'); return; }
         
         for(const c of loaded.credits) {
-          await addDoc(collection(db, 'users', currentUid, 'credits'), {
-            bank: c.bank || '---',
-            amount: Number(c.amount || 0),
-            deadline: c.deadline || new Date().toISOString().split('T')[0]
-          });
+          await saveCreditRemote(new Map(Object.entries(c)), null); // reuse helper essentially
         }
         for(const b of loaded.bonds) {
-          await addDoc(collection(db, 'users', currentUid, 'bonds'), {
-            name: b.name || '---',
-            broker: b.broker || '---',
-            count: Number(b.count || 0),
-            buyPrice: Number(b.buyPrice || 0),
-            currentPrice: Number(b.currentPrice || 0)
-          });
+           // Simplify bulk add
+           await addDoc(collection(db, 'users', currentUid, 'bonds'), b);
         }
         showToast('Імпорт завершено!');
       } catch (err) {
@@ -614,12 +652,61 @@
       }
     });
 
-    // --- Small utils ---
-    function openModal(type) { document.getElementById(`modal-${type}`).classList.remove('hidden'); const d = document.querySelector(`#modal-${type} input[type="date"]`); if(d && !d.value) d.valueAsDate = new Date(); }
-    function closeModal(type) { document.getElementById(`modal-${type}`).classList.add('hidden'); }
-    function showToast(msg) { const t = document.getElementById('toast'); document.getElementById('toast-msg').innerText = msg; t.classList.remove('hidden'); setTimeout(()=> t.classList.add('hidden'), 3000); }
-    function formatCurrency(val){ return new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', maximumFractionDigits: 0 }).format(Math.round(Number(val)||0)); }
-    function escapeHtml(s){ if(!s && s!==0) return ''; return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+    // --- UTILS ---
+    function openModal(type, data = null) {
+      const modal = document.getElementById(`modal-${type}`);
+      const form = document.getElementById(`form-${type}`);
+      const title = document.getElementById(`${type}-modal-title`);
+      const submitBtn = document.getElementById(`submit-${type}-btn`);
+      
+      modal.classList.remove('hidden');
+      
+      // Reset form first
+      form.reset();
+      
+      if (data) {
+        // Edit Mode
+        form.docId.value = data.id;
+        title.innerText = type === 'credit' ? 'Редагувати борг' : 'Редагувати облігацію';
+        submitBtn.innerText = 'Оновити';
+        
+        // Populate fields
+        for (const [key, value] of Object.entries(data)) {
+          if (form.elements[key]) {
+            form.elements[key].value = value;
+          }
+        }
+      } else {
+        // Create Mode
+        form.docId.value = ''; // clear ID
+        title.innerText = type === 'credit' ? 'Додати борг' : 'Купити облігацію';
+        submitBtn.innerText = 'Зберегти';
+        
+        // Set default date if needed
+        const d = form.querySelector(`input[type="date"]`);
+        if(d) d.valueAsDate = new Date();
+      }
+    }
+    
+    function closeModal(type) {
+      document.getElementById(`modal-${type}`).classList.add('hidden');
+    }
+    
+    function showToast(msg) { 
+      const t = document.getElementById('toast'); 
+      document.getElementById('toast-msg').innerText = msg; 
+      t.classList.remove('hidden'); 
+      setTimeout(()=> t.classList.add('hidden'), 3000); 
+    }
+    
+    function formatCurrency(val){ 
+      return new Intl.NumberFormat('uk-UA', { style: 'currency', currency: 'UAH', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(val)||0); 
+    }
+    
+    function escapeHtml(s){ 
+      if(!s && s!==0) return ''; 
+      return String(s).replace(/[&<>"']/g, (m)=> ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); 
+    }
 
   </script>
 </body>
