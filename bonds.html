@@ -2,23 +2,92 @@
 <html lang="uk">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>InvestPro (Bonds Tracker)</title>
+  <!-- Telegram Web App Script -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    
+    :root {
+      --tg-theme-bg-color: #f8fafc;
+      --tg-theme-text-color: #1e293b;
+    }
+
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background-color: var(--tg-theme-bg-color, #f8fafc); 
+      color: var(--tg-theme-text-color, #1e293b);
+      /* Prevent elastic scrolling on iOS base */
+      overscroll-behavior-y: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     .hidden { display: none !important; }
     .custom-scroll::-webkit-scrollbar { height: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
     @keyframes slideIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     .notification { animation: slideIn 0.3s ease-out; }
-    /* Table/Card styles */
     .glass-row { transition: all 0.2s ease; }
+
+    /* iOS Input Fixes */
+    @media screen and (max-width: 768px) {
+      input, select, textarea {
+        font-size: 16px !important; /* Prevent Zoom */
+      }
+      
+      /* Reset native iOS styles for Date/Text inputs */
+      input[type="date"], input[type="text"], input[type="number"], select {
+        -webkit-appearance: none;
+        appearance: none;
+        background-color: #f8fafc; /* Match slate-50 */
+        border-radius: 0.75rem; /* Match rounded-xl */
+        margin: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      /* Fix date input height to match others exactly */
+      input[type="date"] {
+        min-height: 46px; /* Matches standard p-3 input height roughly */
+        display: block;
+      }
+    }
+
     /* Desktop hover effect */
     @media (min-width: 768px) {
         .glass-row:hover { background-color: #f1f5f9; transform: scale(1.002); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); z-index: 10; position: relative; }
+    }
+
+    /* --- MOBILE BOTTOM SHEET STYLES --- */
+    @media (max-width: 640px) {
+        .modal-overlay {
+            align-items: flex-end !important; /* Push content to bottom */
+        }
+        
+        .modal-content {
+            border-radius: 1.5rem 1.5rem 0 0 !important; /* Round top corners only */
+            margin: 0 !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            max-height: 90dvh; /* Dynamic viewport height */
+            overflow-y: auto;
+            overscroll-behavior: contain; /* Prevent scroll chaining */
+            padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); /* Handle iPhone Home Bar */
+        }
+
+        .modal-content.active {
+            transform: translateY(0);
+        }
+    }
+    
+    /* Timer animation for sync code */
+    .sync-timer-bar {
+        transition: width 1s linear;
     }
   </style>
 </head>
@@ -35,12 +104,19 @@
       </div>
 
       <div class="flex gap-2 items-center">
+        <!-- User Area -->
         <div id="user-area" class="hidden items-center gap-3 mr-2 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
           <div class="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center text-xs text-white overflow-hidden">
              <i class="fas fa-user"></i>
           </div>
           <span id="user-email" class="text-xs font-medium text-slate-600 hidden sm:inline"></span>
-          <button id="btn-logout" class="text-slate-400 hover:text-red-500 transition ml-1"><i class="fas fa-sign-out-alt"></i></button>
+          
+          <!-- Sync Button -->
+          <button id="btn-open-sync" class="text-slate-400 hover:text-blue-600 transition ml-2 border-l border-slate-300 pl-2" title="Синхронізація пристроїв">
+            <i class="fas fa-link"></i>
+          </button>
+
+          <button id="btn-logout" class="text-slate-400 hover:text-red-500 transition ml-1" title="Вийти"><i class="fas fa-sign-out-alt"></i></button>
         </div>
 
         <button id="btn-login" class="bg-slate-900 hover:bg-black text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2 shadow-lg shadow-slate-200">
@@ -64,15 +140,28 @@
   <!-- MAIN -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-32">
     
-    <!-- Login Prompt -->
+    <!-- Login Prompt (Standard Web Only) -->
     <div id="login-prompt" class="bg-blue-50 border border-blue-100 p-4 mb-8 rounded-xl flex items-center gap-4 shadow-sm">
       <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
         <i class="fas fa-cloud"></i>
       </div>
       <div>
         <h4 class="font-bold text-blue-900 text-sm">Хмарне збереження</h4>
-        <p class="text-xs text-blue-700">Увійдіть через Google, щоб ваші дані синхронізувалися між пристроями.</p>
+        <p class="text-xs text-blue-700">Увійдіть, щоб ваші дані синхронізувалися.</p>
       </div>
+    </div>
+
+    <!-- Linked Account Banner (Visible only for linked TG users) -->
+    <div id="linked-banner" class="hidden bg-indigo-50 border border-indigo-100 p-3 mb-6 rounded-xl flex items-center justify-between shadow-sm">
+       <div class="flex items-center gap-3">
+           <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center shrink-0">
+             <i class="fas fa-link"></i>
+           </div>
+           <div>
+             <h4 class="font-bold text-indigo-900 text-xs uppercase tracking-wide">Синхронізовано</h4>
+             <p class="text-[10px] text-indigo-700">Дані завантажуються з Google-акаунту.</p>
+           </div>
+       </div>
     </div>
 
     <!-- Stats area -->
@@ -196,10 +285,54 @@
   </div>
 
   <!-- MODALS -->
+
+  <!-- Sync Modal -->
+  <div id="modal-sync" class="modal-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity overflow-hidden">
+    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transform scale-100 transition-transform my-8 relative">
+        <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 md:hidden"></div>
+        
+        <div class="flex justify-between items-center mb-5">
+            <h3 class="text-lg font-bold text-slate-800">Синхронізація пристроїв</h3>
+            <button id="cancel-sync" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Web State: Generate Code -->
+        <div id="sync-web-view" class="hidden text-center">
+            <p class="text-sm text-slate-500 mb-4">Введіть цей код у додатку Telegram для об'єднання акаунтів.</p>
+            
+            <div class="bg-slate-100 rounded-xl p-6 mb-4 relative overflow-hidden">
+                <div id="sync-code-display" class="text-4xl font-mono font-bold text-slate-800 tracking-widest">--- ---</div>
+                <div id="sync-timer-container" class="absolute bottom-0 left-0 h-1 bg-blue-500 w-full hidden"></div>
+            </div>
+
+            <button id="btn-generate-code" class="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition shadow-lg mb-2">
+                Згенерувати код
+            </button>
+            <p class="text-xs text-slate-400">Код дійсний 5 хвилин</p>
+        </div>
+
+        <!-- TG State: Enter Code -->
+        <div id="sync-tg-view" class="hidden">
+             <p class="text-sm text-slate-500 mb-4">Введіть код з веб-версії InvestPro, щоб бачити дані вашого Google-акаунту тут.</p>
+             
+             <div class="mb-4">
+                 <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Код підключення</label>
+                 <input type="text" inputmode="numeric" id="sync-code-input" maxlength="6" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition font-bold text-center text-2xl tracking-widest text-slate-700" placeholder="000 000">
+             </div>
+
+             <button id="btn-submit-code" class="w-full py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-black transition shadow-lg">
+                 Синхронізувати
+             </button>
+        </div>
+    </div>
+  </div>
   
   <!-- Credit Modal -->
-  <div id="modal-credit" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transform scale-100 transition-transform my-8">
+  <div id="modal-credit" class="modal-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 transition-opacity overflow-hidden">
+    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 transform scale-100 transition-transform my-8 relative">
+      <!-- Handle for mobile swipe (visual) -->
+      <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 md:hidden"></div>
+      
       <div class="flex justify-between items-center mb-5">
         <h3 id="credit-modal-title" class="text-lg font-bold text-slate-800">Додати кредитний ліміт</h3>
         <button id="cancel-credit" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
@@ -238,18 +371,28 @@
   </div>
 
   <!-- Bond Modal -->
-  <div id="modal-bond" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 my-8">
+  <div id="modal-bond" class="modal-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-hidden">
+    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 my-8 relative">
+      <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 md:hidden"></div>
+      
       <div class="flex justify-between items-center mb-5">
         <h3 id="bond-modal-title" class="text-lg font-bold text-slate-800">Купити облігацію</h3>
         <button id="cancel-bond" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
       </div>
       <form id="form-bond" class="space-y-4">
         <input type="hidden" name="docId">
-        <div>
+        
+        <!-- UI UPDATE 1: Custom Live Search Container -->
+        <div class="relative">
           <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Назва / ISIN</label>
-          <input type="text" name="name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition font-medium" placeholder="Військові...">
+          <input type="text" name="name" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition font-medium" placeholder="Почніть вводити назву..." autocomplete="off">
+          
+          <!-- Custom Suggestions Dropdown -->
+          <div id="bond-suggestions" class="absolute top-full left-0 w-full bg-white border border-slate-200 rounded-xl shadow-lg mt-1 max-h-48 overflow-y-auto z-50 hidden custom-scroll">
+              <!-- JS Injects items here -->
+          </div>
         </div>
+
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Брокер</label>
@@ -284,11 +427,11 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
                 <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Дата купівлі</label>
-                <input type="date" name="purchaseDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition text-sm">
+                <input type="date" name="purchaseDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition text-sm appearance-none m-0">
             </div>
             <div>
                 <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Дата виплати</label>
-                <input type="date" name="maturityDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition text-sm">
+                <input type="date" name="maturityDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition text-sm appearance-none m-0">
             </div>
         </div>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -312,8 +455,10 @@
   </div>
 
   <!-- Sell Modal -->
-  <div id="modal-sell" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border-t-4 border-green-500 my-8">
+  <div id="modal-sell" class="modal-overlay fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4 overflow-hidden">
+    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border-t-4 border-green-500 my-8 relative">
+      <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-4 md:hidden"></div>
+      
       <div class="flex justify-between items-center mb-5">
         <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><i class="fas fa-coins text-green-500"></i> Продаж</h3>
         <button id="cancel-sell" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
@@ -351,7 +496,7 @@
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide">Дата продажу</label>
-          <input type="date" name="saleDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-100 focus:border-green-400 transition">
+          <input type="date" name="saleDate" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-100 focus:border-green-400 transition appearance-none m-0">
         </div>
 
         <button type="submit" class="w-full py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition shadow-lg mt-2">Підтвердити продаж</button>
@@ -360,8 +505,9 @@
   </div>
 
   <!-- History Modal -->
-  <div id="modal-history" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+  <div id="modal-history" class="modal-overlay fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+    <div class="modal-content bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90dvh] overflow-hidden flex flex-col relative">
+      <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mt-2 mb-1 md:hidden"></div>
       <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
         <div>
             <h3 class="text-xl font-bold text-slate-800" id="history-bond-name">Історія</h3>
@@ -399,24 +545,13 @@
         <!-- Sales History -->
         <div>
             <h4 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2"><i class="fas fa-hand-holding-usd"></i> Історія Продажів</h4>
-            <div class="border border-slate-200 rounded-xl overflow-hidden">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-slate-50 text-slate-500 text-xs font-semibold border-b border-slate-200">
-                        <tr>
-                            <th class="px-4 py-3">Дата</th>
-                            <th class="px-4 py-3">Банк</th>
-                            <th class="px-4 py-3 text-center">К-сть</th>
-                            <th class="px-4 py-3 text-right">Куп</th>
-                            <th class="px-4 py-3 text-right">Прод</th>
-                            <th class="px-4 py-3 text-right">Прибуток</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-sales-list" class="divide-y divide-slate-100">
-                        <!-- injected via JS -->
-                    </tbody>
-                </table>
-                <div id="history-empty" class="p-6 text-center text-slate-400 text-xs hidden">Продажів ще не було</div>
+            
+            <!-- Cards Container (Replaced Table) -->
+            <div id="history-sales-list" class="flex flex-col gap-3">
+                <!-- JS injects cards here -->
             </div>
+            
+            <div id="history-empty" class="p-6 text-center text-slate-400 text-xs hidden">Продажів ще не було</div>
         </div>
       </div>
     </div>
@@ -432,7 +567,7 @@
   <script type="module">
     // --- FIREBASE SDK (Web CDN) ---
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, signInAnonymously, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
     import {
       getFirestore, collection, addDoc, doc, setDoc, getDocs, onSnapshot, query, orderBy, deleteDoc, updateDoc, getDoc
     } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
@@ -453,6 +588,18 @@
     const provider = new GoogleAuthProvider();
     const db = getFirestore(app);
 
+    // --- TELEGRAM INIT ---
+    const tg = window.Telegram.WebApp;
+    // Check if running inside Telegram
+    const isTg = !!tg.initDataUnsafe?.user;
+
+    if (isTg) {
+        tg.ready();
+        tg.expand();
+        // Optional: match colors
+        // document.documentElement.style.setProperty('--tg-theme-bg-color', tg.backgroundColor);
+    }
+
     // --- UI elements ---
     const btnLogin = document.getElementById('btn-login');
     const btnLogout = document.getElementById('btn-logout');
@@ -462,11 +609,14 @@
     const btnExport = document.getElementById('btn-export');
     const btnImport = document.getElementById('btn-import');
     const fileInput = document.getElementById('file-input');
+    const linkedBanner = document.getElementById('linked-banner');
+  
 
     // Forms
     const formCredit = document.getElementById('form-credit');
     const formBond = document.getElementById('form-bond');
     const formSell = document.getElementById('form-sell');
+   
 
     // Modal triggers
     document.getElementById('open-credit').addEventListener('click', () => openModal('credit'));
@@ -475,24 +625,40 @@
     document.getElementById('cancel-bond').addEventListener('click', () => closeModal('bond'));
     document.getElementById('cancel-sell').addEventListener('click', () => closeModal('sell'));
     document.getElementById('close-history').addEventListener('click', () => closeModal('history'));
+    
+    // Sync Triggers
+    const btnOpenSync = document.getElementById('btn-open-sync');
+    const btnGenerateCode = document.getElementById('btn-generate-code');
+    const btnSubmitCode = document.getElementById('btn-submit-code');
+    const btnCancelSync = document.getElementById('cancel-sync');
 
-    // Sync buy price to current price in Add Bond modal
-    formBond.buyPrice.addEventListener('input', (e) => {
-        // Automatically set current price to match buy price if we are adding a new bond
-        // (checking if docId is empty implies 'add' mode, but user might want it in edit too. 
-        //  Let's do it always when typing buyPrice, user can correct currentPrice manually after)
-        formBond.currentPrice.value = e.target.value;
-    });
+    btnOpenSync.addEventListener('click', () => openSyncModal());
+    btnCancelSync.addEventListener('click', () => closeModal('sync'));
+    btnGenerateCode.addEventListener('click', generateSyncCode);
+    btnSubmitCode.addEventListener('click', submitSyncCode);
 
-    // Login / Logout
-    btnLogin.addEventListener('click', async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (err) {
-        console.error(err);
-        showToast('Помилка: Не вдалося увійти');
-      }
-    });
+    // LOGIC CHANGE 2: Removed price coupling listener
+    // formBond.buyPrice.addEventListener('input', ...) was removed
+
+    // Login Logic
+    if (isTg) {
+        // Hide standard Google Login if in Telegram
+        btnLogin.classList.add('hidden');
+        loginPrompt.classList.add('hidden');
+        // Auto-login anonymously to access Firebase
+        signInAnonymously(auth).catch(console.error);
+    } else {
+        // Standard Web Login
+        btnLogin.addEventListener('click', async () => {
+          try {
+            await signInWithPopup(auth, provider);
+          } catch (err) {
+            console.error(err);
+            showToast('Помилка: Не вдалося увійти');
+          }
+        });
+    }
+
     btnLogout.addEventListener('click', async () => {
       await signOut(auth);
     });
@@ -501,23 +667,157 @@
     let unsubCredits = null;
     let unsubBonds = null;
     let currentUid = null;
+    let dbPathPrefix = '';
+    let tgUserId = null;
+    
+    // --- MARKET DATA LOGIC ---
+    let marketDataMap = {}; // Cache for live data
 
-    onAuthStateChanged(auth, user => {
+    async function fetchMarketData() {
+        try {
+            console.log("Fetching market data...");
+            const snap = await getDocs(collection(db, 'market_data'));
+            marketDataMap = {};
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                marketDataMap[data.name] = data; 
+            });
+            console.log(`Loaded ${Object.keys(marketDataMap).length} market instruments`);
+            if (appData.bonds.length > 0) renderAll(); 
+        } catch (e) {
+            console.error("Error loading market data:", e);
+        }
+    }
+
+    // Helper to parse DD.MM.YYYY -> YYYY-MM-DD
+    function parseDateDDMMYYYY(dateStr) {
+        if (!dateStr) return '';
+        const parts = dateStr.split('.');
+        if (parts.length !== 3) return '';
+        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+
+    // UI UPDATE: Custom Live Search Logic
+    const bondNameInput = formBond.name;
+    const suggestionsContainer = document.getElementById('bond-suggestions');
+
+    bondNameInput.addEventListener('input', (e) => {
+        const val = e.target.value.toLowerCase();
+        suggestionsContainer.innerHTML = '';
+        
+        if (val.length < 1) {
+            suggestionsContainer.classList.add('hidden');
+            return;
+        }
+
+        // Filter keys
+        const matches = Object.values(marketDataMap).filter(item => 
+            item.name.toLowerCase().includes(val) || 
+            (item.isin && item.isin.toLowerCase().includes(val))
+        );
+
+        if (matches.length > 0) {
+            suggestionsContainer.classList.remove('hidden');
+            matches.slice(0, 10).forEach(match => { // Limit to 10
+                const div = document.createElement('div');
+                div.className = 'p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 last:border-0 text-sm text-slate-700';
+                div.innerHTML = `<div class="font-medium">${match.name}</div><div class="text-[10px] text-slate-400">Погашення: ${match.maturity_date}</div>`;
+                
+                div.onclick = () => {
+                    selectBondFromSuggestion(match);
+                };
+                suggestionsContainer.appendChild(div);
+            });
+        } else {
+            suggestionsContainer.classList.add('hidden');
+        }
+    });
+
+    function selectBondFromSuggestion(data) {
+        bondNameInput.value = data.name;
+        suggestionsContainer.classList.add('hidden');
+        
+        // Auto-fill Dates
+        const isoDate = parseDateDDMMYYYY(data.maturity_date);
+        if (isoDate) formBond.maturityDate.value = isoDate;
+        
+        // Auto-fill Current Price ONLY (Logic Update 2)
+        if (data.price_sell) {
+            formBond.currentPrice.value = data.price_sell;
+            // formBond.buyPrice IS NOT TOUCHED
+        }
+        
+        showToast(`Дані підтягнуто: ${data.name}`);
+    }
+
+    // Close suggestions on click outside
+    document.addEventListener('click', (e) => {
+        if (!bondNameInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+            suggestionsContainer.classList.add('hidden');
+        }
+    });
+   
+
+    onAuthStateChanged(auth, async (user) => {
       if (user) {
-        currentUid = user.uid;
+        // Fetch market data once user is logged in (to ensure read access)
+        fetchMarketData();
+
+        // Determine path based on environment
+        if (isTg) {
+            tgUserId = tg.initDataUnsafe.user.id;
+            userEmailEl.innerText = tg.initDataUnsafe.user.first_name || 'TG User';
+            
+            // --- SYNC CHECK ---
+            try {
+                const userDocRef = doc(db, 'users', `tg_${tgUserId}`);
+                const userDocSnap = await getDoc(userDocRef);
+                
+                if (userDocSnap.exists() && userDocSnap.data().linkedAccountId) {
+                    const linkedId = userDocSnap.data().linkedAccountId;
+                    dbPathPrefix = `users/${linkedId}`;
+                    linkedBanner.classList.remove('hidden');
+                    console.log('Using linked account:', linkedId);
+                } else {
+                    dbPathPrefix = `users/tg_${tgUserId}`;
+                    linkedBanner.classList.add('hidden');
+                }
+            } catch (e) {
+                console.error("Sync check failed", e);
+                dbPathPrefix = `users/tg_${tgUserId}`;
+            }
+
+        } else {
+            currentUid = user.uid;
+            dbPathPrefix = `users/${currentUid}`;
+            userEmailEl.innerText = user.email || user.displayName;
+            linkedBanner.classList.add('hidden');
+        }
+
         userArea.classList.remove('hidden');
         userArea.classList.add('flex');
-        btnLogin.classList.add('hidden');
-        loginPrompt.classList.add('hidden');
-        userEmailEl.innerText = user.email || user.displayName;
-        startRealtimeListeners(user.uid);
+        
+        if (!isTg) {
+            btnLogin.classList.add('hidden');
+            loginPrompt.classList.add('hidden');
+        }
+        
+        startRealtimeListeners(dbPathPrefix);
       } else {
         currentUid = null;
+        tgUserId = null;
+        dbPathPrefix = '';
         userArea.classList.add('hidden');
         userArea.classList.remove('flex');
-        btnLogin.classList.remove('hidden');
-        loginPrompt.classList.remove('hidden');
+        
+        if (!isTg) {
+            btnLogin.classList.remove('hidden');
+            loginPrompt.classList.remove('hidden');
+        }
+        
         userEmailEl.innerText = '';
+        linkedBanner.classList.add('hidden');
         stopRealtimeListeners();
         // Clear UI
         appData = { credits: [], bonds: [] };
@@ -528,9 +828,11 @@
     // --- Local app data ---
     let appData = { credits: [], bonds: [] };
 
-    function startRealtimeListeners(uid) {
+    function startRealtimeListeners(prefix) {
+      if (!prefix) return;
+
       // credits
-      const creditsCol = collection(db, 'users', uid, 'credits');
+      const creditsCol = collection(db, prefix, 'credits');
       const qCredits = query(creditsCol, orderBy('deadline'));
       if (unsubCredits) unsubCredits();
       unsubCredits = onSnapshot(qCredits, snap => {
@@ -544,7 +846,7 @@
       });
 
       // bonds
-      const bondsCol = collection(db, 'users', uid, 'bonds');
+      const bondsCol = collection(db, prefix, 'bonds');
       const qBonds = query(bondsCol, orderBy('name'));
       if (unsubBonds) unsubBonds();
       unsubBonds = onSnapshot(qBonds, snap => {
@@ -563,16 +865,136 @@
       if (unsubBonds) unsubBonds(), unsubBonds = null;
     }
 
-    // --- HELPER: Parse numbers with comma or dot ---
+    // --- SYNC LOGIC ---
+    
+    function openSyncModal() {
+        if(!dbPathPrefix && !isTg && !currentUid) {
+            showToast("Спочатку увійдіть!");
+            return;
+        }
+
+        openModal('sync');
+        const webView = document.getElementById('sync-web-view');
+        const tgView = document.getElementById('sync-tg-view');
+        
+        if (isTg) {
+            // Telegram: Enter Code
+            webView.classList.add('hidden');
+            tgView.classList.remove('hidden');
+            document.getElementById('sync-code-input').value = '';
+        } else {
+            // Web: Generate Code
+            tgView.classList.add('hidden');
+            webView.classList.remove('hidden');
+            // Reset display
+            document.getElementById('sync-code-display').innerText = '--- ---';
+            document.getElementById('sync-timer-container').classList.add('hidden');
+            document.getElementById('btn-generate-code').classList.remove('hidden');
+        }
+    }
+
+    async function generateSyncCode() {
+        if (!currentUid) return;
+        
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 5 * 60 * 1000; // 5 mins
+
+        try {
+            document.getElementById('btn-generate-code').disabled = true;
+            document.getElementById('btn-generate-code').innerText = "Генеруємо...";
+            
+            await setDoc(doc(db, 'connect_codes', code), {
+                targetUid: currentUid,
+                expiresAt: expiresAt
+            });
+            
+            // Update UI
+            document.getElementById('sync-code-display').innerText = `${code.substring(0,3)} ${code.substring(3)}`;
+            document.getElementById('btn-generate-code').classList.add('hidden');
+            document.getElementById('btn-generate-code').disabled = false;
+            document.getElementById('btn-generate-code').innerText = "Згенерувати код";
+
+            // Timer visualization
+            const timerBar = document.getElementById('sync-timer-container');
+            timerBar.classList.remove('hidden');
+            timerBar.style.width = '100%';
+            timerBar.classList.add('sync-timer-bar'); // CSS transition
+            setTimeout(() => timerBar.style.width = '0%', 10);
+
+        } catch (e) {
+            console.error("Error generating code", e);
+            showToast("Помилка генерації коду");
+            document.getElementById('btn-generate-code').disabled = false;
+        }
+    }
+
+    async function submitSyncCode() {
+        const input = document.getElementById('sync-code-input');
+        const code = input.value.replace(/\s/g, '');
+        
+        if (code.length !== 6) {
+            showToast("Введіть 6 цифр");
+            return;
+        }
+        
+        try {
+            btnSubmitCode.disabled = true;
+            btnSubmitCode.innerText = "Перевірка...";
+            
+            const codeRef = doc(db, 'connect_codes', code);
+            const codeSnap = await getDoc(codeRef);
+            
+            if (!codeSnap.exists()) {
+                showToast("Невірний або застарілий код");
+                btnSubmitCode.disabled = false;
+                btnSubmitCode.innerText = "Синхронізувати";
+                return;
+            }
+            
+            const data = codeSnap.data();
+            if (Date.now() > data.expiresAt) {
+                 showToast("Код застарів");
+                 btnSubmitCode.disabled = false;
+                 btnSubmitCode.innerText = "Синхронізувати";
+                 return;
+            }
+            
+            // Valid code -> Link!
+            const targetUid = data.targetUid;
+            await setDoc(doc(db, 'users', `tg_${tgUserId}`), {
+                linkedAccountId: targetUid
+            }, { merge: true });
+            
+            // Switch DB path immediately
+            dbPathPrefix = `users/${targetUid}`;
+            startRealtimeListeners(dbPathPrefix);
+            
+            showToast("Успішно об'єднано!");
+            linkedBanner.classList.remove('hidden');
+            closeModal('sync');
+            
+            btnSubmitCode.disabled = false;
+            btnSubmitCode.innerText = "Синхронізувати";
+
+        } catch (e) {
+            console.error("Sync error", e);
+            showToast("Помилка синхронізації");
+            btnSubmitCode.disabled = false;
+            btnSubmitCode.innerText = "Синхронізувати";
+        }
+    }
+   
+
+    
+    // --- HELPER: Parse numbers ---
     function parseMoney(val) {
       if (!val) return 0;
-      // replace comma with dot, remove spaces
       return parseFloat(val.toString().replace(',', '.').replace(/\s/g, ''));
     }
 
     // --- CRUD to Firestore ---
     async function saveCreditRemote(data, id) {
-      if(!currentUid) { showToast('Спочатку увійдіть'); return; }
+      if(!dbPathPrefix) { showToast('Спочатку увійдіть'); return; }
       const payload = {
         bank: data.get('bank'),
         amount: parseMoney(data.get('amount')),
@@ -580,14 +1002,16 @@
       };
       
       if (id) {
-        await updateDoc(doc(db, 'users', currentUid, 'credits', id), payload);
+        await updateDoc(doc(db, dbPathPrefix, 'credits', id), payload);
+      
       } else {
-        await addDoc(collection(db, 'users', currentUid, 'credits'), payload);
+        await addDoc(collection(db, dbPathPrefix, 'credits'), payload);
+        
       }
     }
 
     async function saveBondRemote(data, id) {
-      if(!currentUid) { showToast('Спочатку увійдіть'); return; }
+      if(!dbPathPrefix) { showToast('Спочатку увійдіть'); return; }
       const payload = {
         name: data.get('name'),
         broker: data.get('broker'),
@@ -598,18 +1022,24 @@
         currentPrice: parseMoney(data.get('currentPrice')),
         purchaseBank: data.get('purchaseBank') || 'Не вказано'
       };
+      
+      // Default to auto-updates (not manual) unless explicitly set logic added later
+      if (!id) {
+          payload.isManualPrice = false;
+          payload.sales = [];
+      }
 
       if (id) {
-        await updateDoc(doc(db, 'users', currentUid, 'bonds', id), payload);
+        // If editing existing, we don't reset isManualPrice unless specific logic requires
+        await updateDoc(doc(db, dbPathPrefix, 'bonds', id), payload);
       } else {
-        payload.sales = []; // Init sales array for new bond
-        await addDoc(collection(db, 'users', currentUid, 'bonds'), payload);
+        await addDoc(collection(db, dbPathPrefix, 'bonds'), payload);
       }
     }
 
     async function recordSaleRemote(bondId, saleData) {
-        if(!currentUid) return;
-        const bondRef = doc(db, 'users', currentUid, 'bonds', bondId);
+        if(!dbPathPrefix) return;
+        const bondRef = doc(db, dbPathPrefix, 'bonds', bondId);
         
         try {
             const bondSnap = await getDoc(bondRef);
@@ -626,6 +1056,10 @@
             
             const newCount = currentCount - saleCount;
             const salesHistory = bond.sales || [];
+            
+            // Profit calc for notification
+            const profit = (saleData.price - bond.buyPrice) * saleCount;
+
             salesHistory.push({
                 date: saleData.date,
                 count: saleCount,
@@ -637,6 +1071,9 @@
                 count: newCount,
                 sales: salesHistory
             });
+
+           
+            
             return true;
         } catch (e) {
             console.error(e);
@@ -645,15 +1082,21 @@
     }
 
     async function deleteRemote(type, id) {
-      if(!currentUid) { showToast('Спочатку увійдіть'); return; }
-      await deleteDoc(doc(db, 'users', currentUid, type, id));
+      if(!dbPathPrefix) { showToast('Спочатку увійдіть'); return; }
+      await deleteDoc(doc(db, dbPathPrefix, type, id));
     }
 
+    // Modified to handle manual price flag
     async function updatePriceRemote(id, val) {
-      if(!currentUid) return;
-      const ref = doc(db, 'users', currentUid, 'bonds', id);
-      await updateDoc(ref, { currentPrice: parseMoney(val) });
+      if(!dbPathPrefix) return;
+      const ref = doc(db, dbPathPrefix, 'bonds', id);
+      await updateDoc(ref, { 
+          currentPrice: parseMoney(val),
+          isManualPrice: true // Mark as manually overridden
+      });
     }
+    
+    
 
     // --- UI: Forms & Edit Logic ---
 
@@ -731,13 +1174,10 @@
         const days = Math.ceil((new Date(c.deadline) - new Date()) / (1000*60*60*24));
         const isUrgent = days < 5;
         
-        // This DIV structure replaces the TR structure
         const item = document.createElement('div');
-        // Mobile: Card style, Desktop: Grid/Row style
         item.className = 'glass-row p-4 rounded-xl border border-slate-200 bg-white md:border-0 md:bg-transparent md:rounded-none md:p-0 md:px-4 md:py-3 md:grid md:grid-cols-12 md:items-center md:gap-4';
         
         item.innerHTML = `
-            <!-- Mobile Header / Desktop Col 1 -->
             <div class="flex items-center gap-3 mb-3 md:mb-0 md:col-span-4">
                 <div class="w-10 h-10 md:w-8 md:h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500 font-bold text-sm shrink-0">
                     <i class="fas fa-university"></i>
@@ -748,7 +1188,6 @@
                 </div>
             </div>
 
-            <!-- Mobile Body / Desktop Cols -->
             <div class="flex justify-between items-end md:contents">
                 <div class="flex flex-col gap-1 md:col-span-3 md:items-end">
                     <div class="md:hidden text-[10px] uppercase font-bold text-slate-400 tracking-wider">Борг</div>
@@ -761,29 +1200,23 @@
                     </span>
                 </div>
                 
-                <div class="hidden md:flex md:col-span-2 md:justify-end gap-1">
-                    <!-- Desktop Actions (placeholder for cloning) -->
-                </div>
+                <div class="hidden md:flex md:col-span-2 md:justify-end gap-1"></div>
             </div>
             
-            <!-- Mobile Actions -->
             <div class="mt-4 pt-3 border-t border-slate-100 flex justify-between items-center md:hidden">
                 <div class="text-xs text-slate-400 font-medium">Дії</div>
                 <div class="flex items-center gap-2 mobile-actions-container"></div>
             </div>
 
-            <!-- Desktop Actions Actual -->
             <div class="hidden md:flex md:col-span-2 md:justify-end gap-1 desktop-actions-container"></div>
         `;
 
-        // Action Buttons Generation
         const actionsHtml = `
             <button data-id="${c.id}" class="add-to-calendar w-8 h-8 md:w-7 md:h-7 rounded-full bg-yellow-50 text-yellow-600 hover:bg-yellow-100 transition flex items-center justify-center" title="Нагадати"><i class="fas fa-bell text-xs md:text-[10px]"></i></button>
             <button data-id="${c.id}" class="edit-credit w-8 h-8 md:w-7 md:h-7 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition flex items-center justify-center" title="Редагувати"><i class="fas fa-pen text-xs md:text-[10px]"></i></button>
             <button data-id="${c.id}" class="delete-credit w-8 h-8 md:w-7 md:h-7 rounded-full bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition flex items-center justify-center" title="Видалити"><i class="fas fa-trash text-xs md:text-[10px]"></i></button>
         `;
         
-        // Inject actions into both containers
         const mobActions = item.querySelector('.mobile-actions-container');
         const deskActions = item.querySelector('.desktop-actions-container');
         if(mobActions) mobActions.innerHTML = actionsHtml;
@@ -792,7 +1225,6 @@
         list.appendChild(item);
       });
 
-      // Handlers (keep same)
       document.querySelectorAll('.add-to-calendar').forEach(btn => btn.onclick = (e) => { const id = e.currentTarget.getAttribute('data-id'); const item = appData.credits.find(i => i.id === id); if(item) addToGoogleCalendar(item); });
       document.querySelectorAll('.delete-credit').forEach(btn => btn.onclick = async (e) => { const id = e.currentTarget.getAttribute('data-id'); if (!confirm('Видалити запис?')) return; try { await deleteRemote('credits', id); showToast('Видалено'); } catch(err){ console.error(err); showToast('Помилка видалення'); } });
       document.querySelectorAll('.edit-credit').forEach(btn => btn.onclick = (e) => { const id = e.currentTarget.getAttribute('data-id'); const item = appData.credits.find(i => i.id === id); if(item) openModal('credit', item); });
@@ -807,9 +1239,16 @@
         return;
       }
       empty.classList.add('hidden');
+      
       appData.bonds.forEach(b => {
-        // Use current price if available, otherwise fallback to buy price for display
-        const displayCurrentPrice = (b.currentPrice !== undefined && b.currentPrice !== null && b.currentPrice !== "") ? b.currentPrice : b.buyPrice;
+        // --- LOGIC CHANGE: Current Price determination ---
+        const marketMatch = marketDataMap[b.name];
+        let displayCurrentPrice = (b.currentPrice !== undefined && b.currentPrice !== null && b.currentPrice !== "") ? b.currentPrice : b.buyPrice;
+        
+        // Override with market data if available and not manually set
+        if (marketMatch && b.isManualPrice !== true) {
+            displayCurrentPrice = marketMatch.price_sell;
+        }
 
         const profit = (displayCurrentPrice * b.count) - (b.buyPrice * b.count);
         const realizedProfit = (b.sales || []).reduce((acc, sale) => acc + ((sale.price - b.buyPrice) * sale.count), 0);
@@ -820,11 +1259,9 @@
         const mDate = b.maturityDate ? new Date(b.maturityDate).toLocaleDateString('uk-UA', {day:'2-digit', month:'2-digit', year:'2-digit'}) : '-';
 
         const item = document.createElement('div');
-        // Mobile: Card style, Desktop: Grid style
         item.className = 'glass-row p-4 rounded-xl border border-slate-200 bg-white md:border-0 md:bg-transparent md:rounded-none md:p-0 md:px-4 md:py-3 md:grid md:grid-cols-12 md:items-center md:gap-4';
 
         item.innerHTML = `
-            <!-- Mobile Header / Desktop Col 1 -->
             <div class="flex items-start gap-3 mb-3 md:mb-0 md:col-span-4 overflow-hidden">
                 <div class="w-10 h-10 md:w-8 md:h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 font-bold text-xs shrink-0">
                     <i class="fas fa-file-contract"></i>
@@ -842,9 +1279,7 @@
                 </div>
             </div>
 
-            <!-- Mobile Data Grid / Desktop Cols -->
             <div class="grid grid-cols-3 gap-2 md:contents">
-                <!-- Count -->
                 <div class="bg-slate-50 p-2 rounded-lg text-center md:bg-transparent md:p-0 md:rounded-none md:col-span-1">
                     <div class="md:hidden text-[9px] uppercase font-bold text-slate-400 mb-0.5">К-сть</div>
                     <div class="font-bold text-slate-700 text-sm">${b.count}</div>
@@ -854,7 +1289,6 @@
                         </div>` : ''}
                 </div>
 
-                <!-- Price Input -->
                 <div class="bg-slate-50 p-2 rounded-lg text-center md:bg-transparent md:p-0 md:rounded-none md:col-span-3 md:text-right">
                     <div class="md:hidden text-[9px] uppercase font-bold text-slate-400 mb-0.5">Ціна</div>
                     <div class="relative inline-block w-full md:w-20 group/input">
@@ -864,7 +1298,6 @@
                     </div>
                 </div>
 
-                <!-- Profit -->
                 <div class="bg-slate-50 p-2 rounded-lg text-center md:bg-transparent md:p-0 md:rounded-none md:col-span-2 md:text-right flex flex-col justify-center items-center md:items-end">
                     <div class="md:hidden text-[9px] uppercase font-bold text-slate-400 mb-0.5">Прибуток</div>
                     <div class="font-bold text-sm font-mono ${isProfit ? 'text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100' : 'text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-100'}">
@@ -873,17 +1306,14 @@
                 </div>
             </div>
 
-            <!-- Mobile Actions -->
             <div class="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center md:hidden">
                 <div class="text-xs text-slate-400 font-medium">Дії</div>
                 <div class="flex items-center gap-2 mobile-actions-container"></div>
             </div>
 
-            <!-- Desktop Actions Actual -->
             <div class="hidden md:flex md:col-span-2 md:justify-end gap-1 desktop-actions-container"></div>
         `;
 
-        // Action Buttons
         const actionsHtml = `
             <button data-id="${b.id}" class="show-history w-8 h-8 md:w-7 md:h-7 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition flex items-center justify-center" title="Історія операцій">
                 <i class="fas fa-scroll text-xs md:text-[10px]"></i>
@@ -907,13 +1337,11 @@
         list.appendChild(item);
       });
 
-      // Handlers
       document.querySelectorAll('.delete-bond').forEach(btn => btn.onclick = async (e) => { const id = e.currentTarget.getAttribute('data-id'); if(!confirm('Видалити запис?')) return; try { await deleteRemote('bonds', id); showToast('Видалено'); } catch(err){ console.error(err); showToast('Помилка видалення'); } });
       document.querySelectorAll('.edit-bond').forEach(btn => btn.onclick = (e) => { const id = e.currentTarget.getAttribute('data-id'); const item = appData.bonds.find(i => i.id === id); if(item) openModal('bond', item); });
       document.querySelectorAll('.sell-bond').forEach(btn => btn.onclick = (e) => { const id = e.currentTarget.getAttribute('data-id'); const item = appData.bonds.find(i => i.id === id); if(item) openModal('sell', item); });
       document.querySelectorAll('.price-input').forEach(inp => inp.onchange = async (e) => { const id = e.target.getAttribute('data-id'); const val = e.target.value; try { await updatePriceRemote(id, val); showToast('Ціна оновлена'); } catch(err){ console.error(err); showToast('Помилка оновлення'); } });
       
-      // History Button Handler
       document.querySelectorAll('.show-history').forEach(btn => {
         btn.onclick = (e) => {
             const id = e.currentTarget.getAttribute('data-id');
@@ -927,14 +1355,17 @@
       const totalDebt = appData.credits.reduce((sum, c) => sum + Number(c.amount || 0), 0);
       let totalAssets = 0;
       const brokers = {};
-      
       let totalHoldingsProfit = 0;
       let totalRealizedProfit = 0;
 
       (appData.bonds || []).forEach(b => {
-        // Use current price if available, else buy price for calculation
-        const price = (b.currentPrice !== undefined && b.currentPrice !== null && b.currentPrice !== "") ? b.currentPrice : b.buyPrice;
-        
+        // Same logic for stats - pull live price if applicable
+        const marketMatch = marketDataMap[b.name];
+        let price = (b.currentPrice !== undefined && b.currentPrice !== null && b.currentPrice !== "") ? b.currentPrice : b.buyPrice;
+        if (marketMatch && b.isManualPrice !== true) {
+            price = marketMatch.price_sell;
+        }
+
         totalAssets += (b.count * price);
         totalHoldingsProfit += (b.count * (price - b.buyPrice));
         const itemRealized = (b.sales || []).reduce((acc, sale) => acc + ((sale.price - b.buyPrice) * sale.count), 0);
@@ -993,13 +1424,13 @@
         const loaded = JSON.parse(text);
         if (!loaded.credits || !loaded.bonds) { showToast('Невірний формат'); return; }
         if(!confirm('Імпорт замінить поточні дані. Продовжити?')) return;
-        if(!currentUid) { showToast('Увійдіть для імпорту'); return; }
+        if(!dbPathPrefix) { showToast('Увійдіть для імпорту'); return; }
         
         for(const c of loaded.credits) {
           await saveCreditRemote(new Map(Object.entries(c)), null); 
         }
         for(const b of loaded.bonds) {
-           await addDoc(collection(db, 'users', currentUid, 'bonds'), b);
+           await addDoc(collection(db, dbPathPrefix, 'bonds'), b);
         }
         showToast('Імпорт завершено!');
       } catch (err) {
@@ -1013,6 +1444,16 @@
     // --- UTILS ---
     function openModal(type, data = null) {
       const modal = document.getElementById(`modal-${type}`);
+      // Prevent scrolling of background on mobile when modal is open
+      // Use Fixed positioning trick for iOS to prevent rubber-banding of body
+      if (window.innerWidth <= 640) {
+        document.body.style.top = `-${window.scrollY}px`;
+        document.body.style.position = 'fixed';
+        document.body.style.width = '100%';
+      } else {
+        document.body.style.overflow = 'hidden';
+      }
+
       if(type === 'sell') {
           const form = document.getElementById('form-sell');
           form.reset();
@@ -1023,13 +1464,14 @@
           form.saleDate.valueAsDate = new Date();
       } else if (type === 'history') {
           // Handled by openHistoryModal
+      } else if (type === 'sync') {
+          // Handled by openSyncModal
       } else {
           const form = document.getElementById(`form-${type}`);
           const title = document.getElementById(`${type}-modal-title`);
           const submitBtn = document.getElementById(`submit-${type}-btn`);
           form.reset();
           if (data) {
-            // Edit Mode
             form.docId.value = data.id;
             title.innerText = type === 'credit' ? 'Редагувати кредитний ліміт' : 'Редагувати облігацію';
             submitBtn.innerText = 'Оновити';
@@ -1045,24 +1487,36 @@
           }
       }
       modal.classList.remove('hidden');
-      setTimeout(() => modal.firstElementChild.classList.remove('scale-95', 'opacity-0'), 10);
+      
+      // Slight delay to allow CSS transition for bottom sheet
+      setTimeout(() => {
+          if (window.innerWidth <= 640) {
+              modal.querySelector('.modal-content').classList.add('active');
+          } else {
+              modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0');
+          }
+      }, 10);
     }
 
     function openHistoryModal(item) {
         const modal = document.getElementById('modal-history');
-        document.getElementById('history-bond-name').innerText = item.name;
+        if (window.innerWidth <= 640) {
+            document.body.style.top = `-${window.scrollY}px`;
+            document.body.style.position = 'fixed';
+            document.body.style.width = '100%';
+        } else {
+            document.body.style.overflow = 'hidden';
+        }
         
-        // Purchase Data
+        document.getElementById('history-bond-name').innerText = item.name;
         document.getElementById('hist-p-date').innerText = new Date(item.purchaseDate).toLocaleDateString('uk-UA');
         document.getElementById('hist-p-bank').innerText = item.purchaseBank || 'Не вказано';
-        // Calculate original total count (current + sold)
         const totalSold = (item.sales || []).reduce((a, s) => a + s.count, 0);
         const originalCount = Number(item.count) + totalSold;
         
         document.getElementById('hist-p-count').innerText = `${originalCount} шт`;
         document.getElementById('hist-p-price').innerText = formatCurrency(item.buyPrice);
         
-        // Sales List
         const salesList = document.getElementById('history-sales-list');
         const emptyState = document.getElementById('history-empty');
         salesList.innerHTML = '';
@@ -1078,27 +1532,71 @@
                 const profit = (sellPrice - buyPrice) * count;
                 const isProfit = profit >= 0;
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="px-4 py-3 font-medium whitespace-nowrap">${new Date(sale.date).toLocaleDateString('uk-UA')}</td>
-                    <td class="px-4 py-3 text-slate-500 text-xs">${sale.targetBank || '-'}</td>
-                    <td class="px-4 py-3 text-center font-bold">${count}</td>
-                    <td class="px-4 py-3 text-right text-xs text-slate-400">${formatCurrency(buyPrice)}</td>
-                    <td class="px-4 py-3 text-right text-xs font-medium text-slate-700">${formatCurrency(sellPrice)}</td>
-                    <td class="px-4 py-3 text-right font-bold ${isProfit ? 'text-green-600' : 'text-red-500'}">
-                        ${isProfit ? '+' : ''}${formatCurrency(profit)}
-                    </td>
+                const card = document.createElement('div');
+                card.className = 'bg-slate-50 p-4 rounded-2xl border border-slate-100 relative overflow-hidden';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <div class="font-bold text-slate-700 text-sm">${new Date(sale.date).toLocaleDateString('uk-UA')}</div>
+                            <div class="text-xs text-slate-400">Дата продажу</div>
+                        </div>
+                        <div class="bg-white px-2 py-1 rounded-lg border border-slate-200 text-xs font-medium text-slate-600">
+                            ${sale.targetBank || 'Не вказано'}
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 text-center">
+                            <div class="text-[9px] text-slate-400 uppercase font-bold mb-0.5">Кількість</div>
+                            <div class="font-bold text-slate-800">${count}</div>
+                        </div>
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 text-center">
+                            <div class="text-[9px] text-slate-400 uppercase font-bold mb-0.5">Ціна</div>
+                            <div class="font-bold text-slate-800">${formatCurrency(sellPrice)}</div>
+                        </div>
+                        <div class="bg-white p-2 rounded-lg border border-slate-200 text-center relative overflow-hidden">
+                            <div class="text-[9px] text-slate-400 uppercase font-bold mb-0.5">Прибуток</div>
+                            <div class="font-bold ${isProfit ? 'text-green-600' : 'text-red-500'}">
+                                ${isProfit ? '+' : ''}${formatCurrency(profit)}
+                            </div>
+                            <!-- decorative bg -->
+                            <div class="absolute bottom-0 left-0 w-full h-1 ${isProfit ? 'bg-green-500' : 'bg-red-500'} opacity-20"></div>
+                        </div>
+                    </div>
                 `;
-                salesList.appendChild(tr);
+                salesList.appendChild(card);
             });
         }
         
         modal.classList.remove('hidden');
+        setTimeout(() => {
+            if (window.innerWidth <= 640) {
+                modal.querySelector('.modal-content').classList.add('active');
+            }
+        }, 10);
     }
     
     function closeModal(type) {
       const modal = document.getElementById(`modal-${type}`);
-      modal.classList.add('hidden');
+      
+      // Enable scroll back
+      if (window.innerWidth <= 640) {
+        const scrollY = document.body.style.top;
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.width = '';
+        window.scrollTo(0, parseInt(scrollY || '0') * -1);
+      } else {
+        document.body.style.overflow = '';
+      }
+      
+      if (window.innerWidth <= 640) {
+          modal.querySelector('.modal-content').classList.remove('active');
+          // Wait for transition to finish before hiding
+          setTimeout(() => modal.classList.add('hidden'), 300);
+      } else {
+          modal.classList.add('hidden');
+      }
     }
     
     function showToast(msg) { 
